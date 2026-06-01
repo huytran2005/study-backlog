@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.brainnote.feature.splash.SplashScreen
+import com.example.brainnote.ui.navigation.StudyBacklogApp
 import com.example.brainnote.ui.theme.BrainNoteTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BrainNoteTheme {
-                SplashScreen()
+                StudyBacklogApp()
             }
         }
     }

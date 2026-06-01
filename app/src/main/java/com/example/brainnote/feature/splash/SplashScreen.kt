@@ -3,6 +3,12 @@ package com.example.brainnote.feature.splash
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -22,12 +28,13 @@ import com.example.brainnote.R
 
 /**
  * SplashScreen renders the centered animated GIF from resources on a solid purple background (#6C43B8),
- * displaying the application title below in responsive and bold white typography.
+ * displaying the application title below in responsive and bold white typography, alongside a CTA button.
  */
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
-    uiState: SplashUiState = SplashUiState()
+    uiState: SplashUiState = SplashUiState(),
+    onGetStartedClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -78,6 +85,37 @@ fun SplashScreen(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Primary CTA Button
+            Button(
+                onClick = onGetStartedClick,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(horizontal = 24.dp), // full width with horizontal padding
+                shape = RoundedCornerShape(28.dp) // pill shape
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Let's Get Started",
+                        color = Color(0xFF6C43B8), // Brand Purple
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Arrow Forward",
+                        tint = Color(0xFF6C43B8),
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
+            }
         }
     }
 }

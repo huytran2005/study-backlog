@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.brainnote.feature.auth.login.LoginScreen
 import com.example.brainnote.feature.onboarding.OnboardingScreen
 import com.example.brainnote.feature.splash.SplashScreen
 
@@ -13,11 +14,12 @@ import com.example.brainnote.feature.splash.SplashScreen
 object BrainNoteDestinations {
     const val SPLASH_ROUTE = "splash"
     const val ONBOARDING_ROUTE = "onboarding"
+    const val LOGIN_ROUTE = "login"
 }
 
 /**
  * StudyBacklogApp hosts the Navigation Host managing state transitions
- * between Splash and Onboarding Screens.
+ * between Splash, Onboarding, and Login Screens.
  */
 @Composable
 fun StudyBacklogApp() {
@@ -43,9 +45,18 @@ fun StudyBacklogApp() {
         composable(BrainNoteDestinations.ONBOARDING_ROUTE) {
             OnboardingScreen(
                 onContinueClick = { option ->
-                    // Log selection and handle transition when onboarding is completed
-                    println("Onboarding completed with option: $option")
+                    // Navigate to the newly integrated Login screen when onboarding is completed
+                    navController.navigate(BrainNoteDestinations.LOGIN_ROUTE)
                 }
+            )
+        }
+
+        // Login Screen Destination
+        composable(BrainNoteDestinations.LOGIN_ROUTE) {
+            LoginScreen(
+                onLoginSuccess = {},
+                onRegisterClick = {},
+                onForgotPasswordClick = {}
             )
         }
     }

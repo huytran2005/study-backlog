@@ -77,28 +77,13 @@ fun AuthTextField(
             },
             trailingIcon = if (isPassword) {
                 {
-                    val image = if (passwordVisible) {
-                        Icons.Filled.Visibility
-                    } else {
-                        Icons.Filled.VisibilityOff
-                    }
-
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = image,
-                            contentDescription = description,
-                            tint = Color(0xFF79747E)
-                        )
-                    }
+                    PasswordVisibilityToggle(
+                        passwordVisible = passwordVisible,
+                        onVisibilityChange = { passwordVisible = it }
+                    )
                 }
             } else null,
-            visualTransformation = if (isPassword && !passwordVisible) {
-                PasswordVisualTransformation()
-            } else {
-                VisualTransformation.None
-            },
+            visualTransformation = getPasswordVisualTransformation(isPassword, passwordVisible),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             colors = OutlinedTextFieldDefaults.colors(

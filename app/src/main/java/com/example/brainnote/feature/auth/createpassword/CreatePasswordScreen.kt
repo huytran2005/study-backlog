@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainnote.feature.auth.components.AuthButton
+import com.example.brainnote.feature.auth.components.AuthScreenContainer
+import com.example.brainnote.feature.auth.components.AuthTopNavigation
 import com.example.brainnote.feature.auth.components.BrainNoteTextField
 import com.example.brainnote.ui.theme.BrainNoteTheme
 
@@ -78,45 +80,14 @@ fun CreatePasswordScreenContent(
     
     val focusManager = LocalFocusManager.current
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .safeDrawingPadding() // Safe area support (statusBar, navigationBar padding)
+    AuthScreenContainer(
+        modifier = modifier,
+        horizontalAlignment = Alignment.Start,
+        innerPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding() // Keyboard-avoiding behavior
-                .verticalScroll(rememberScrollState()) // Support landscape and smaller screens
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
             
             // 1. Top Navigation
-            Row(
-                modifier = Modifier
-                    .clickable(
-                        onClick = onBackClick,
-                        onClickLabel = "Back to login screen"
-                    )
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Arrow pointing left",
-                    tint = brandPurple,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Back to Login",
-                    color = brandPurple,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            AuthTopNavigation(onBackClick = onBackClick)
 
             Spacer(modifier = Modifier.height(36.dp))
 
@@ -213,7 +184,6 @@ fun CreatePasswordScreenContent(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
 }
 
 // --- Preview Support ---

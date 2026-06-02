@@ -1,9 +1,14 @@
 package com.example.brainnote.ui.navigation
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.brainnote.feature.auth.login.LoginScreen
+import com.example.brainnote.feature.auth.createpassword.CreatePasswordScreen
+import com.example.brainnote.feature.auth.register.RegisterScreen
 import com.example.brainnote.feature.onboarding.OnboardingScreen
 import com.example.brainnote.feature.splash.SplashScreen
 
@@ -13,15 +18,19 @@ import com.example.brainnote.feature.splash.SplashScreen
 object BrainNoteDestinations {
     const val SPLASH_ROUTE = "splash"
     const val ONBOARDING_ROUTE = "onboarding"
+    const val LOGIN_ROUTE = "login"
+    const val CREATE_PASSWORD = "create_password"
+    const val REGISTER = "register"
 }
 
 /**
  * StudyBacklogApp hosts the Navigation Host managing state transitions
- * between Splash and Onboarding Screens.
+ * between Splash, Onboarding, and Login Screens.
  */
 @Composable
 fun StudyBacklogApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
     
     NavHost(
         navController = navController,
@@ -43,9 +52,44 @@ fun StudyBacklogApp() {
         composable(BrainNoteDestinations.ONBOARDING_ROUTE) {
             OnboardingScreen(
                 onContinueClick = { option ->
-                    // Log selection and handle transition when onboarding is completed
-                    println("Onboarding completed with option: $option")
+                    // Navigate to the newly integrated Login screen when onboarding is completed
+                    navController.navigate(BrainNoteDestinations.LOGIN_ROUTE)
                 }
+            )
+        }
+
+        // Login Screen Destination
+        composable(BrainNoteDestinations.LOGIN_ROUTE) {
+            LoginScreen(
+                onLoginSuccess = {
+                    Toast.makeText(context, "Logged in successfully!", Toast.LENGTH_SHORT).show()
+                },
+                onRegisterClick = {
+                    navController.navigate(BrainNoteDestinations.REGISTER)
+                },
+                onForgotPasswordClick = {
+                    navController.navigate(BrainNoteDestinations.CREATE_PASSWORD)
+                }
+            )
+        }
+
+        // Create Password Screen Destination
+        composable(BrainNoteDestinations.CREATE_PASSWORD) {
+            CreatePasswordScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPasswordCreated = {
+                    Toast.makeText(context, "Password created successfully!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Register Screen Destination
+        composable(BrainNoteDestinations.REGISTER) {
+            RegisterScreen(
+                navController = navController
             )
         }
     }

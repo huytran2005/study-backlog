@@ -1,10 +1,13 @@
 package com.example.brainnote.ui.navigation
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.brainnote.feature.auth.login.LoginScreen
+import com.example.brainnote.feature.auth.createpassword.CreatePasswordScreen
 import com.example.brainnote.feature.auth.register.RegisterScreen
 import com.example.brainnote.feature.onboarding.OnboardingScreen
 import com.example.brainnote.feature.splash.SplashScreen
@@ -16,6 +19,7 @@ object BrainNoteDestinations {
     const val SPLASH_ROUTE = "splash"
     const val ONBOARDING_ROUTE = "onboarding"
     const val LOGIN_ROUTE = "login"
+    const val CREATE_PASSWORD = "create_password"
     const val REGISTER = "register"
 }
 
@@ -26,6 +30,7 @@ object BrainNoteDestinations {
 @Composable
 fun StudyBacklogApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
     
     NavHost(
         navController = navController,
@@ -56,11 +61,28 @@ fun StudyBacklogApp() {
         // Login Screen Destination
         composable(BrainNoteDestinations.LOGIN_ROUTE) {
             LoginScreen(
-                onLoginSuccess = {},
+                onLoginSuccess = {
+                    Toast.makeText(context, "Logged in successfully!", Toast.LENGTH_SHORT).show()
+                },
                 onRegisterClick = {
                     navController.navigate(BrainNoteDestinations.REGISTER)
                 },
-                onForgotPasswordClick = {}
+                onForgotPasswordClick = {
+                    navController.navigate(BrainNoteDestinations.CREATE_PASSWORD)
+                }
+            )
+        }
+
+        // Create Password Screen Destination
+        composable(BrainNoteDestinations.CREATE_PASSWORD) {
+            CreatePasswordScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPasswordCreated = {
+                    Toast.makeText(context, "Password created successfully!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
             )
         }
 

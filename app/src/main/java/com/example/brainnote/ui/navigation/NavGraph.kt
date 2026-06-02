@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.brainnote.feature.auth.login.LoginScreen
+import com.example.brainnote.feature.auth.register.RegisterScreen
 import com.example.brainnote.feature.onboarding.OnboardingScreen
 import com.example.brainnote.feature.splash.SplashScreen
 
@@ -15,6 +16,7 @@ object BrainNoteDestinations {
     const val SPLASH_ROUTE = "splash"
     const val ONBOARDING_ROUTE = "onboarding"
     const val LOGIN_ROUTE = "login"
+    const val REGISTER = "register"
 }
 
 /**
@@ -55,8 +57,17 @@ fun StudyBacklogApp() {
         composable(BrainNoteDestinations.LOGIN_ROUTE) {
             LoginScreen(
                 onLoginSuccess = {},
-                onRegisterClick = {},
+                onRegisterClick = {
+                    navController.navigate(BrainNoteDestinations.REGISTER)
+                },
                 onForgotPasswordClick = {}
+            )
+        }
+
+        // Register Screen Destination
+        composable(BrainNoteDestinations.REGISTER) {
+            RegisterScreen(
+                navController = navController
             )
         }
     }

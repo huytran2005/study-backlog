@@ -47,7 +47,7 @@ class RegisterViewModel(
         _uiState.update { currentState ->
             val error = when {
                 email.isEmpty() -> null // Do not show error when empty
-                !Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$").matches(email) -> "Please enter a valid email address"
+                !Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(email) -> "Please enter a valid email address"
                 else -> null
             }
             currentState.copy(

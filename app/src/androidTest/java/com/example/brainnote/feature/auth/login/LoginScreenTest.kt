@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -124,15 +125,15 @@ class LoginScreenTest {
         composeTestRule.onNodeWithText("Password").performTextInput("password123")
         
         // Initial state
-        composeTestRule.onNodeWithText("Login").assertIsEnabled()
+        composeTestRule.onNodeWithTag("LoginButton").assertIsEnabled()
 
         // Trigger login
-        composeTestRule.onNodeWithText("Login").performClick()
+        composeTestRule.onNodeWithTag("LoginButton").performClick()
 
         // Wait for composition to update
         composeTestRule.waitForIdle()
 
         // Button should be disabled during loading
-        composeTestRule.onNodeWithText("Login").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("LoginButton").assertIsNotEnabled()
     }
 }

@@ -47,86 +47,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}
 ) {
-    // Hoisted form state
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-    var emailError by rememberSaveable { mutableStateOf<String?>(null) }
-    var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
-
-    val coroutineScope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
-
-    val uiState = LoginUiState(
-        email = email,
-        password = password,
-        isLoading = isLoading,
-        emailError = emailError,
-        passwordError = passwordError
-    )
-
-    // Form validation helper
-    fun validateAndSubmit() {
-        focusManager.clearFocus()
-        var isValid = true
-
-        // 1. Email validation
-        if (email.isBlank()) {
-            emailError = "Email cannot be empty."
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Please enter a valid email address."
-            isValid = false
-        } else {
-            emailError = null
-        }
-
-        // 2. Password validation
-        if (password.isBlank()) {
-            passwordError = "Password cannot be empty."
-            isValid = false
-        } else if (password.length < 6) {
-            passwordError = "Password must be at least 6 characters."
-            isValid = false
-        } else {
-            passwordError = null
-        }
-
-        if (isValid) {
-            // Simulate API authentication call
-            coroutineScope.launch {
-                isLoading = true
-                delay(1500) // 1.5 seconds loading simulation
-                isLoading = false
-                onLoginSuccess()
-            }
-        }
-    }
 
     LoginScreenContent(
         modifier = modifier,
         uiState = uiState,
-        onEmailChange = {
-            email = it
-            if (emailError != null) emailError = null // Clear error dynamically
+        onEmailChange = { viewModel.updateEmail(it) },
+        onPasswordChange = { viewModel.updatePassword(it) },
+        onLoginClick = {
+            focusManager.clearFocus()
+            viewModel.login(onSuccess = onLoginSuccess)
         },
-        onPasswordChange = {
-            password = it
-            if (passwordError != null) passwordError = null // Clear error dynamically
-        },
-        onLoginClick = { validateAndSubmit() },
         onGoogleLoginClick = {
-            // Simulate Google SSO call
-            coroutineScope.launch {
-                isLoading = true
-                delay(1000)
-                isLoading = false
-                onLoginSuccess()
-            }
+            viewModel.googleLogin(onSuccess = onLoginSuccess)
         },
         onForgotPasswordClick = onForgotPasswordClick,
         onRegisterClick = onRegisterClick

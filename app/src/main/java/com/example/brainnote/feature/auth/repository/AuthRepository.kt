@@ -10,11 +10,7 @@ interface AuthRepository {
 class DefaultAuthRepository : AuthRepository {
     override suspend fun login(email: String, password: String): Result<Unit> {
         delay(1500) // Simulate network delay
-        return if (email == "user@brainnote.com" && password == "mypassword") {
-             Result.success(Unit) // Just for simulation of a correct login, but usually true for all in simulation
-        } else {
-             Result.success(Unit) // We will return success for simulation just like before
-        }
+        return Result.success(Unit) // Just for simulation of a correct login
     }
 
     override suspend fun googleLogin(): Result<Unit> {

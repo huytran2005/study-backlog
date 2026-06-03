@@ -3,6 +3,7 @@ package com.example.brainnote.feature.auth.login
 import com.example.brainnote.utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -103,7 +104,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with valid input handles loading state correctly`() = runTest {
+    fun `login with valid input handles loading state correctly`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.updateEmail("test@example.com")
         viewModel.updatePassword("password123")
         
@@ -112,9 +113,12 @@ class LoginViewModelTest {
         var successCalled = false
         viewModel.login { successCalled = true }
         
-        // Wait, UnconfinedTestDispatcher runs eagerly, so loading state might jump to false immediately.
-        // Actually, with standard test dispatcher we could check loading state, but let's just check the final state here.
-        // To properly test loading state in the middle, we would need StandardTestDispatcher.
+        // At this point, the coroutine is suspended due to delay(1000)
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(successCalled)
+
+        advanceUntilIdle()
+
         assertFalse(viewModel.uiState.value.isLoading)
         assertTrue(successCalled)
     }

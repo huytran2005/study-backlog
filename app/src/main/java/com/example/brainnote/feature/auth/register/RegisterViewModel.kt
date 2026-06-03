@@ -9,11 +9,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.example.brainnote.feature.auth.repository.AuthRepository
+import com.example.brainnote.feature.auth.repository.DefaultAuthRepository
+
 /**
  * ViewModel for the Register Screen.
  * Encapsulates form inputs, validations, loading transactions, and keeps the UI code purely presentation-focused.
  */
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(
+    private val authRepository: AuthRepository = DefaultAuthRepository()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -41,13 +46,13 @@ class RegisterViewModel : ViewModel() {
     fun onEmailChanged(email: String) {
         _uiState.update { currentState ->
             val error = when {
-                email.isEmpty() -> null
-                !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Please enter a valid email address"
+                email.isEmpty() -> null // Do not show error when empty
+                !Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$").matches(email) -> "Please enter a valid email address"
                 else -> null
             }
             currentState.copy(
                 email = email,
-                emailError = error
+                emailError = error // Update UI state with error message
             )
         }
     }
@@ -86,11 +91,13 @@ class RegisterViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            // Simulate standard API registration network delay
-            delay(1500)
+            val result = authRepository.register(state.fullName, state.email, state.password)
             
             _uiState.update { it.copy(isLoading = false) }
-            onSuccess()
+            
+            if (result.isSuccess) {
+                onSuccess()
+            }
         }
     }
 }

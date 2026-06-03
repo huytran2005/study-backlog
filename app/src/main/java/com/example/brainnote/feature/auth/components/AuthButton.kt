@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.brainnote.ui.theme.BrainNoteTheme
 
 /**
@@ -42,7 +43,7 @@ fun AuthButton(
             disabledContainerColor = Color(0xFFE0E0E0),
             disabledContentColor = Color(0xFF9E9E9E)
         ),
-        modifier = modifier.height(56.dp), // Premium comfortable touch targets
+        modifier = modifier.height(56.dp).testTag("${text}Button"), // Premium comfortable touch targets
         shape = RoundedCornerShape(28.dp)  // Pill-shaped rounded styling
     ) {
         Box(

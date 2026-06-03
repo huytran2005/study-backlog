@@ -24,4 +24,13 @@ class FakeAuthRepository : AuthRepository {
             Result.success(Unit)
         }
     }
+
+    override suspend fun register(name: String, email: String, password: String): Result<Unit> {
+        delay(delayMillis)
+        return if (shouldReturnError) {
+            Result.failure(Exception("Registration failed"))
+        } else {
+            Result.success(Unit)
+        }
+    }
 }

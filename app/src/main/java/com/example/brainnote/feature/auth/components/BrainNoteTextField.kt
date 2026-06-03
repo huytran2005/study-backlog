@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.brainnote.ui.theme.BrainNoteTheme
 
 /**
@@ -69,7 +70,7 @@ fun BrainNoteTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("${label}Field"),
             placeholder = if (placeholder.isNotEmpty()) {
                 {
                     Text(

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "automerge": false,
+  "packageRules": [
+    {
+      "matchPackageNames": ["androidx.compose.**", "androidx.activity:activity-compose"],
+      "groupName": "Jetpack Compose"
+    },
+    {
+      "matchManagers": ["gradle"],
+      "groupName": "Gradle dependencies"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    }
+  ]
+}

@@ -65,6 +65,18 @@ class RegisterViewModelTest {
     }
 
     @Test
+    fun `onEmailChanged with domain but no TLD sets emailError`() {
+        viewModel.onEmailChanged("user@example")
+        assertEquals("Please enter a valid email address", viewModel.uiState.value.emailError)
+    }
+
+    @Test
+    fun `onEmailChanged with domain and trailing dot but no TLD sets emailError`() {
+        viewModel.onEmailChanged("user@example.")
+        assertEquals("Please enter a valid email address", viewModel.uiState.value.emailError)
+    }
+
+    @Test
     fun `onEmailChanged with multiple at symbols sets emailError`() {
         viewModel.onEmailChanged("user@@example.com")
         assertEquals("Please enter a valid email address", viewModel.uiState.value.emailError)

@@ -31,3 +31,12 @@ jobs:
 
     - name: Build with Gradle
       run: ./gradlew build
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Build Test APK
+      run: ./gradlew assembleDebugAndroidTest
+
+    - name: Run Firebase Test Lab
+      run: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk

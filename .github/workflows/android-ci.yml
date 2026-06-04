@@ -39,4 +39,9 @@ jobs:
       run: ./gradlew assembleDebugAndroidTest
 
     - name: Run Firebase Test Lab
-      run: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+      run: |
+        gcloud firebase test android run \
+          --type instrumentation \
+          --app app/build/outputs/apk/debug/app-debug.apk \
+          --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk \
+          --results-bucket=study-b-498409-test-results

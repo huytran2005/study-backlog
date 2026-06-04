@@ -139,7 +139,7 @@ fun RegisterScreenContent(
                     imeAction = ImeAction.Next
                 ),
                 enabled = !uiState.isLoading,
-                modifier = Modifier.fillMaxWidth().testTag("Full NameField")
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -156,7 +156,7 @@ fun RegisterScreenContent(
                     imeAction = ImeAction.Next
                 ),
                 enabled = !uiState.isLoading,
-                modifier = Modifier.fillMaxWidth().testTag("EmailField")
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -181,7 +181,7 @@ fun RegisterScreenContent(
                     }
                 ),
                 enabled = !uiState.isLoading,
-                modifier = Modifier.fillMaxWidth().testTag("PasswordField")
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Dynamic layout pushes the button to the bottom when screen size allows

@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.compose.ui.graphics.Color
 
@@ -11,3 +11,4 @@ enum class PasswordStrength(val label: String, val color: Color) {
     MEDIUM("Medium", Color(0xFFFBC02D)),   // Yellow/Amber
     STRONG("Strong", Color(0xFF388E3C))    // Green
 }
+

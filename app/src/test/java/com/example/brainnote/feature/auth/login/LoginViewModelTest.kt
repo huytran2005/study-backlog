@@ -90,7 +90,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with valid input calls repository and onSuccess on success`() = runTest {
+    fun `login with valid input calls repository and onSuccess on success`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.updateEmail("test@example.com")
         viewModel.updatePassword("password123")
         
@@ -124,7 +124,7 @@ class LoginViewModelTest {
     }
     
     @Test
-    fun `googleLogin updates loading state and calls onSuccess on success`() = runTest {
+    fun `googleLogin updates loading state and calls onSuccess on success`() = runTest(mainDispatcherRule.testDispatcher) {
         var successCalled = false
         viewModel.googleLogin { successCalled = true }
         

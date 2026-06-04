@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 /**
  * UI State container for the Create New Password screen.
@@ -23,3 +23,4 @@ data class CreatePasswordUiState(
                 confirmPasswordError == null &&
                 password == confirmPassword
 }
+

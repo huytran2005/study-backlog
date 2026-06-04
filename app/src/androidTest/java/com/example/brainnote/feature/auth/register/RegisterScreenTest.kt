@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.brainnote.ui.theme.BrainNoteTheme
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,7 +46,7 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("Full NameField").assertIsDisplayed()
         composeTestRule.onNodeWithTag("EmailField").assertIsDisplayed()
         composeTestRule.onNodeWithTag("PasswordField").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("RegisterButton").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("RegisterButton").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -147,7 +148,7 @@ class RegisterScreenTest {
         org.junit.Assert.assertEquals("new@example.com", emailState.value)
 
         // performClick safely executes on the exact Button node
-        composeTestRule.onNodeWithTag("RegisterButton").performClick()
+        composeTestRule.onNodeWithTag("RegisterButton").performScrollTo().performClick()
         org.junit.Assert.assertTrue(registerClicked)
     }
 

@@ -2,30 +2,26 @@ package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.example.brainnote.feature.auth.repository.AuthRepository
+import com.example.brainnote.feature.auth.repository.DefaultAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class VerificationCodeViewModel : ViewModel() {
+class VerificationCodeViewModel(
+    private val authRepository: AuthRepository = DefaultAuthRepository()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VerificationCodeUiState())
     val uiState: StateFlow<VerificationCodeUiState> = _uiState.asStateFlow()
 
     fun onCodeChanged(code: String) {
-        // Allow only digits and max 6 characters
-        val filteredCode = code.filter { it.isDigit() }.take(6)
-        
         _uiState.update { currentState ->
-            val error = if (filteredCode.isEmpty() || filteredCode.length == 6) {
-                null
-            } else {
-                "Code must be 6 digits."
-            }
+            val error = if (code.isNotEmpty() && code.length != 6) "Code must be 6 digits." else null
             currentState.copy(
-                code = filteredCode,
+                code = code,
                 codeError = error
             )
         }
@@ -37,13 +33,12 @@ class VerificationCodeViewModel : ViewModel() {
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            
-            // Simulate network delay
-            delay(1500)
-            
-            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-            onSuccess()
+            val result = authRepository.verifyResetCode(state.code)
+            _uiState.update { it.copy(isLoading = false) }
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isSuccess = true) }
+                onSuccess()
+            }
         }
     }
 }
-

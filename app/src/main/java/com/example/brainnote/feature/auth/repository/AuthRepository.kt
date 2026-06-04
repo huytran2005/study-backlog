@@ -6,6 +6,9 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): Result<Unit>
     suspend fun googleLogin(): Result<Unit>
     suspend fun register(name: String, email: String, password: String): Result<Unit>
+    suspend fun requestPasswordReset(email: String): Result<Unit>
+    suspend fun verifyResetCode(code: String): Result<Unit>
+    suspend fun resetPassword(password: String): Result<Unit>
 }
 
 class DefaultAuthRepository : AuthRepository {
@@ -20,6 +23,21 @@ class DefaultAuthRepository : AuthRepository {
     }
 
     override suspend fun register(name: String, email: String, password: String): Result<Unit> {
+        delay(1500)
+        return Result.success(Unit)
+    }
+
+    override suspend fun requestPasswordReset(email: String): Result<Unit> {
+        delay(1500)
+        return Result.success(Unit)
+    }
+
+    override suspend fun verifyResetCode(code: String): Result<Unit> {
+        delay(1000)
+        return Result.success(Unit)
+    }
+
+    override suspend fun resetPassword(password: String): Result<Unit> {
         delay(1500)
         return Result.success(Unit)
     }

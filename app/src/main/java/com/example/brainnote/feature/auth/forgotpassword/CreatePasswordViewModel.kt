@@ -2,7 +2,8 @@ package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.example.brainnote.feature.auth.repository.AuthRepository
+import com.example.brainnote.feature.auth.repository.DefaultAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
  * Purely architecture-compliant: all business logic resides here.
  */
 class CreatePasswordViewModel(
-    private val validator: PasswordValidator = PasswordValidator()
+    private val passwordValidator: PasswordValidator = PasswordValidator(),
+    private val authRepository: AuthRepository = DefaultAuthRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreatePasswordUiState())
@@ -27,13 +29,13 @@ class CreatePasswordViewModel(
      */
     fun onPasswordChanged(password: String) {
         _uiState.update { currentState ->
-            val validationResult = validator.validate(password)
+            val validationResult = passwordValidator.validate(password)
             // Prevent showing immediate error text on empty input to preserve user experience
             val error = if (password.isEmpty() || validationResult.isValid) null else validationResult.errorMessage
-            val calculatedStrength = validator.calculateStrength(password)
+            val calculatedStrength = passwordValidator.calculateStrength(password)
 
             // Re-validate confirm password match if it was already filled
-            val confirmError = if (currentState.confirmPassword.isEmpty() || validator.passwordsMatch(password, currentState.confirmPassword)) {
+            val confirmError = if (currentState.confirmPassword.isEmpty() || passwordValidator.passwordsMatch(password, currentState.confirmPassword)) {
                 null
             } else {
                 "Passwords must match"
@@ -54,7 +56,7 @@ class CreatePasswordViewModel(
      */
     fun onConfirmPasswordChanged(confirmPassword: String) {
         _uiState.update { currentState ->
-            val isMatching = validator.passwordsMatch(currentState.password, confirmPassword)
+            val isMatching = passwordValidator.passwordsMatch(currentState.password, confirmPassword)
             val error = if (confirmPassword.isEmpty() || isMatching) null else "Passwords must match"
 
             currentState.copy(
@@ -77,11 +79,12 @@ class CreatePasswordViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            // Simulate API transaction latency (1.5 seconds)
-            delay(1500)
+            val result = authRepository.resetPassword(state.password)
             
             _uiState.update { it.copy(isLoading = false) }
-            onSuccess()
+            if (result.isSuccess) {
+                onSuccess()
+            }
         }
     }
 }

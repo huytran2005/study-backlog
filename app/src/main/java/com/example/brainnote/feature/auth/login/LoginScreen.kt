@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.brainnote.feature.auth.components.AuthButton
+import com.example.brainnote.feature.auth.components.AuthScreenContainer
 import com.example.brainnote.feature.auth.components.AuthTextField
 import com.example.brainnote.feature.auth.components.GoogleLoginButton
 import com.example.brainnote.ui.theme.BrainNoteTheme
@@ -90,19 +91,11 @@ fun LoginScreenContent(
 ) {
     val brandPurple = Color(0xFF6C43B8)
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .safeDrawingPadding() // Absolute edge-to-edge support
+    AuthScreenContainer(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        innerPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Responsive scrolling
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
             Spacer(modifier = Modifier.height(48.dp))
 
             // Large Title
@@ -251,7 +244,6 @@ fun LoginScreenContent(
                     .padding(16.dp)
             )
         }
-    }
 }
 
 @Preview(showBackground = true, name = "Empty Form Login Screen")

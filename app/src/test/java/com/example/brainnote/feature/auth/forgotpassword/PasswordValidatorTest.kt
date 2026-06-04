@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -87,3 +87,4 @@ class PasswordValidatorTest {
         assertEquals(PasswordStrength.STRONG, validator.calculateStrength("Pass123!"))
     }
 }
+

@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -85,3 +85,4 @@ class CreatePasswordViewModel(
         }
     }
 }
+

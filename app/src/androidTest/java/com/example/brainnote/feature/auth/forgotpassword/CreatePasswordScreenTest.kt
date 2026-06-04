@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -64,3 +64,4 @@ class CreatePasswordScreenTest {
         composeTestRule.onNodeWithTag("Create PasswordButton").assertIsEnabled()
     }
 }
+

@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -284,3 +284,4 @@ fun ValidStatePreview() {
         )
     }
 }
+

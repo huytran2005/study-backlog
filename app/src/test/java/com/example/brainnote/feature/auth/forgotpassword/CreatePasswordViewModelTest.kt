@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 import com.example.brainnote.utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -98,3 +98,4 @@ class CreatePasswordViewModelTest {
         assertTrue(successCalled)
     }
 }
+

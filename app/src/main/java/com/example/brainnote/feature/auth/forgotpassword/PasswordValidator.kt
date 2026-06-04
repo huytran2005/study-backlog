@@ -1,4 +1,4 @@
-package com.example.brainnote.feature.auth.createpassword
+package com.example.brainnote.feature.auth.forgotpassword
 
 /**
  * ValidationResult represents the output of a validation pass.
@@ -72,3 +72,4 @@ class PasswordValidator {
         }
     }
 }
+

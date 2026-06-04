@@ -122,7 +122,7 @@ fun CreatePasswordScreenContent(
 
             // 2. Content Section (Heading & Subtitle)
             Text(
-                text = "Create a New Password",
+                text = "Create a New\nPassword",
                 fontSize = 38.sp,
                 lineHeight = 44.sp,
                 fontWeight = FontWeight.Bold,
@@ -151,7 +151,7 @@ fun CreatePasswordScreenContent(
                 placeholder = "********",
                 isPassword = true,
                 errorText = uiState.passwordError,
-                helperText = "At least 8 characters, including uppercase, lowercase and number",
+                helperText = "min. 8 character, combination of 0-9, A-Z, a-z",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Next
@@ -197,9 +197,7 @@ fun CreatePasswordScreenContent(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Flexible spacing to push button to the bottom but scroll on small screen height constraints
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // 4. Bottom Action CTA Button
             AuthButton(

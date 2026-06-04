@@ -33,4 +33,31 @@ class FakeAuthRepository : AuthRepository {
             Result.success(Unit)
         }
     }
+
+    override suspend fun requestPasswordReset(email: String): Result<Unit> {
+        delay(delayMillis)
+        return if (shouldReturnError) {
+            Result.failure(Exception("Password reset request failed"))
+        } else {
+            Result.success(Unit)
+        }
+    }
+
+    override suspend fun verifyResetCode(code: String): Result<Unit> {
+        delay(delayMillis)
+        return if (shouldReturnError) {
+            Result.failure(Exception("Invalid code"))
+        } else {
+            Result.success(Unit)
+        }
+    }
+
+    override suspend fun resetPassword(password: String): Result<Unit> {
+        delay(delayMillis)
+        return if (shouldReturnError) {
+            Result.failure(Exception("Password reset failed"))
+        } else {
+            Result.success(Unit)
+        }
+    }
 }

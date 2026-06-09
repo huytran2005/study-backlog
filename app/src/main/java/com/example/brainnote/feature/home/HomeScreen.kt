@@ -6,7 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.LayoutDirection
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -19,33 +28,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.brainnote.R
-import com.example.brainnote.ui.theme.BrainNoteTheme
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
-/**
- * HomeScreen representing the empty state of Study Backlog.
- * Features centered illustration, custom pointing arrow, bottom navigation, and purple plus FAB.
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onAddNoteClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    val primaryColor = Color(0xFF6C43B8)
+    val primaryColor = Color(0xFF7445C8)
     val grayText = Color(0xFF79747E)
 
     Scaffold(
@@ -62,188 +57,115 @@ fun HomeScreen(
             )
         },
         floatingActionButtonPosition = FabPosition.Center,
-        containerColor = Color(0xFFEFE9F7)
+        containerColor = Color(0xFFF5F4F8)
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(Color(0xFFEFE9F7))
+                .padding(
+                    bottom = innerPadding.calculateBottomPadding()
+                )
         ) {
-            // Main content containing illustration and description
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Centered illustration
-                Image(
-                    painter = painterResource(id = R.drawable.home_iilustration),
-                    contentDescription = "No notes available illustration",
-                    modifier = Modifier
-                        .size(240.dp)
-                        .aspectRatio(1f)
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Title
-                Text(
-                    text = "Start Your Journey",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryColor,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Description
-                Text(
-                    text = "Every big step start with small step.\nNotes your first idea and start your journey!",
-                    fontSize = 15.sp,
-                    color = grayText,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                // Give space for the pointing arrow below description
-                Spacer(modifier = Modifier.height(80.dp))
-            }
-
-            // Curved Arrow pointing to the FAB in the bottom-center
-            CurvedArrowPointingToFab(
-                modifier = Modifier.fillMaxSize(),
-                color = primaryColor
-            )
+            NoteDashboardScreen()
         }
     }
 }
 
 /**
- * A custom canvas composable drawing a curved dashed arrow pointing towards the FAB.
+ * Custom Shape that draws a top-rounded bar with a curved notch cutout in the center.
  */
-@Composable
-fun CurvedArrowPointingToFab(
-    modifier: Modifier = Modifier,
-    color: Color
-) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-
-        // Start point near the bottom right of the text/description
-        val startX = w * 0.65f
-        val startY = h * 0.68f
-
-        // End point pointing towards the FAB position (centered bottom)
-        val endX = w * 0.53f
-        val endY = h * 0.84f
-
-        // Control point to create a nice curve curving to the right and down
-        val controlX = w * 0.75f
-        val controlY = h * 0.78f
-
+class NotchShape(private val circleRadiusDp: Float, private val notchDepthDp: Float) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: androidx.compose.ui.unit.Density
+    ): Outline {
         val path = Path().apply {
-            moveTo(startX, startY)
-            quadraticTo(controlX, controlY, endX, endY)
+            val w = size.width
+            val h = size.height
+            val cx = w / 2
+            val r = circleRadiusDp * density.density
+            val d = notchDepthDp * density.density
+            val corner = 28.dp.value * density.density
+
+            moveTo(0f, corner)
+            quadraticTo(0f, 0f, corner, 0f)
+
+            // Draw line to the start of the notch
+            val notchStart = cx - r - 10.dp.value * density.density
+            lineTo(notchStart, 0f)
+
+            // Curve into the notch
+            quadraticTo(cx - r, 0f, cx - r * 0.7f, d * 0.5f)
+            quadraticTo(cx, d * 1.15f, cx + r * 0.7f, d * 0.5f)
+            quadraticTo(cx + r, 0f, cx + r + 10.dp.value * density.density, 0f)
+
+            // Line to the top-right corner
+            lineTo(w - corner, 0f)
+            quadraticTo(w, 0f, w, corner)
+
+            // Finish the bottom rectangle
+            lineTo(w, h)
+            lineTo(0f, h)
+            close()
         }
-
-        // Draw curved dashed path
-        drawPath(
-            path = path,
-            color = color,
-            style = Stroke(
-                width = 2.dp.toPx(),
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f),
-                cap = StrokeCap.Round
-            )
-        )
-
-        // Draw arrow head at (endX, endY) pointing towards the FAB.
-        // We approximate the angle using tangent vector from control point to end point.
-        val angle = atan2(endY - controlY, endX - controlX)
-        val arrowLength = 10.dp.toPx()
-        val arrowAngleRad = Math.toRadians(30.0)
-
-        val arrowLeftX = endX - arrowLength * cos(angle - arrowAngleRad).toFloat()
-        val arrowLeftY = endY - arrowLength * sin(angle - arrowAngleRad).toFloat()
-
-        val arrowRightX = endX - arrowLength * cos(angle + arrowAngleRad).toFloat()
-        val arrowRightY = endY - arrowLength * sin(angle + arrowAngleRad).toFloat()
-
-        val arrowHeadPath = Path().apply {
-            moveTo(endX, endY)
-            lineTo(arrowLeftX, arrowLeftY)
-            moveTo(endX, endY)
-            lineTo(arrowRightX, arrowRightY)
-        }
-
-        drawPath(
-            path = arrowHeadPath,
-            color = color,
-            style = Stroke(
-                width = 2.dp.toPx(),
-                cap = StrokeCap.Round
-            )
-        )
+        return Outline.Generic(path)
     }
 }
 
 /**
- * Reusable Large FAB component styled according to design specification.
+ * Reusable Large FAB component styled with a premium white outline and shadow.
  */
 @Composable
 fun LargeFAB(
     primaryColor: Color,
     onClick: () -> Unit
 ) {
-    FloatingActionButton(
-        onClick = onClick,
-        shape = CircleShape,
-        containerColor = primaryColor,
-        contentColor = Color.White,
+    Box(
         modifier = Modifier
-            .size(76.dp)
-            .offset(y = 34.dp) // Enlarged and lowered slightly to sit perfectly on the rounded edge
+            .size(68.dp)
+            .offset(y = 34.dp) // Pushed deeper down into the notch
+            .shadow(10.dp, CircleShape, spotColor = primaryColor.copy(alpha = 0.4f))
+            .background(primaryColor, CircleShape) // Inner purple FAB (no white border)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Add note",
-            modifier = Modifier.size(36.dp)
+            tint = Color.White,
+            modifier = Modifier.size(30.dp)
         )
     }
 }
 
 /**
- * Bottom Navigation containing Home, Finished, Search, Settings with a gap in the center for the FAB.
+ * Bottom Navigation containing Home, Finished, Search, Settings with a gap in the center.
  */
 @Composable
 fun CustomBottomNavigationBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit
 ) {
-    // Custom bottom navigation bar using Surface to support top rounded corners and proper padding
+    val barShape = NotchShape(circleRadiusDp = 42f, notchDepthDp = 32f)
+
     Surface(
         color = Color.White,
         shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = barShape,
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding() // Shunts above Android system navigation buttons
+            .navigationBarsPadding()
+            .border(1.dp, Color(0xFF0F172A).copy(alpha = 0.08f), barShape)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp, bottom = 12.dp, start = 8.dp, end = 8.dp),
+                .padding(top = 10.dp, bottom = 10.dp, start = 8.dp, end = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left tabs: Home and Finished
             BottomTabItem(
                 icon = Icons.Outlined.Home,
                 label = "Home",
@@ -259,10 +181,9 @@ fun CustomBottomNavigationBar(
                 modifier = Modifier.weight(1f)
             )
 
-            // Space holder for the FAB
-            Spacer(modifier = Modifier.weight(0.8f))
+            // Space holder for the FAB notch
+            Spacer(modifier = Modifier.weight(0.9f))
 
-            // Right tabs: Search and Settings
             BottomTabItem(
                 icon = Icons.Outlined.Search,
                 label = "Search",
@@ -289,38 +210,28 @@ fun RowScope.BottomTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val activeColor = Color(0xFF6C43B8)
+    val activeColor = Color(0xFF7445C8)
     val inactiveColor = Color(0xFF9E9E9E)
 
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.height(56.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = if (isSelected) activeColor else inactiveColor,
-                modifier = Modifier.size(28.dp) // Enlarged icon size
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label,
-                fontSize = 11.sp, // Text label
-                color = if (isSelected) activeColor else inactiveColor,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
-@Composable
-fun HomeScreenPreview() {
-    BrainNoteTheme {
-        HomeScreen()
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (isSelected) activeColor else inactiveColor,
+            modifier = Modifier.size(26.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = if (isSelected) activeColor else inactiveColor,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        )
     }
 }

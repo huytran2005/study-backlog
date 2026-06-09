@@ -15,6 +15,7 @@ import com.example.brainnote.feature.onboarding.OnboardingScreen
 import com.example.brainnote.feature.onboarding.OnboardingOption
 import com.example.brainnote.feature.splash.SplashScreen
 import com.example.brainnote.feature.home.HomeScreen
+import com.example.brainnote.feature.home.AddNoteScreen
 
 /**
  * Route constants for the application navigation graph.
@@ -28,6 +29,7 @@ object BrainNoteDestinations {
     const val CREATE_PASSWORD = "create_password"
     const val REGISTER = "register"
     const val HOME_ROUTE = "home"
+    const val ADD_NOTE_ROUTE = "add_note"
 }
 
 /**
@@ -74,7 +76,7 @@ fun StudyBacklogApp() {
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(BrainNoteDestinations.HOME_ROUTE) {
-                        popUpTo(BrainNoteDestinations.LOGIN_ROUTE) { inclusive = true }
+                        popUpTo(BrainNoteDestinations.ONBOARDING_ROUTE) { inclusive = true }
                     }
                 },
                 onRegisterClick = {
@@ -90,7 +92,20 @@ fun StudyBacklogApp() {
         composable(BrainNoteDestinations.HOME_ROUTE) {
             HomeScreen(
                 onAddNoteClick = {
-                    Toast.makeText(context, "Add Note Clicked", Toast.LENGTH_SHORT).show()
+                    navController.navigate(BrainNoteDestinations.ADD_NOTE_ROUTE)
+                }
+            )
+        }
+
+        // Add Note Destination
+        composable(BrainNoteDestinations.ADD_NOTE_ROUTE) {
+            AddNoteScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { title, content, color ->
+                    Toast.makeText(context, "Note Saved!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
                 }
             )
         }

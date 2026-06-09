@@ -54,14 +54,14 @@ val NoteDarkText = Color(0xFF1E1E1E)
 fun BaseNoteCard(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
-    onClick: () -> Unit = {},
+    onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.(Boolean) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val isActive = isHovered || isPressed
+    val isActive = (isHovered || isPressed) && onClick != null
 
     // Smooth hover/tap translation
     val translationY by animateDpAsState(
@@ -87,14 +87,19 @@ fun BaseNoteCard(
             .background(backgroundColor, RoundedCornerShape(20.dp))
             .border(1.dp, Color.Black.copy(alpha = 0.03f), RoundedCornerShape(20.dp))
             .clip(RoundedCornerShape(20.dp))
-            .hoverable(interactionSource)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .hoverable(interactionSource)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = onClick
+                        )
+                } else Modifier
             )
     ) {
-        content(isHovered)
+        content(isHovered && onClick != null)
     }
 }
 
@@ -187,9 +192,10 @@ fun IdeaCard(
     title: String,
     description: String,
     footerText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
-    BaseNoteCard(modifier = modifier, backgroundColor = Color.White) {
+    BaseNoteCard(modifier = modifier, backgroundColor = Color.White, onClick = onClick) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
@@ -246,9 +252,10 @@ fun ImageIdeaCard(
     title: String,
     description: String,
     footerText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
-    BaseNoteCard(modifier = modifier, backgroundColor = NotePurpleLight) {
+    BaseNoteCard(modifier = modifier, backgroundColor = NotePurpleLight, onClick = onClick) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -319,9 +326,10 @@ fun ShoppingListCard(
     title: String,
     items: List<String>,
     footerText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
-    BaseNoteCard(modifier = modifier, backgroundColor = NoteYellow) {
+    BaseNoteCard(modifier = modifier, backgroundColor = NoteYellow, onClick = onClick) {
         var completedStates by remember { mutableStateOf(items.map { false }) }
 
         Column(
@@ -423,9 +431,10 @@ fun NestedTaskCard(
     title: String,
     tasks: List<Pair<String, List<String>>>,
     footerText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
-    BaseNoteCard(modifier = modifier, backgroundColor = NoteBeige) {
+    BaseNoteCard(modifier = modifier, backgroundColor = NoteBeige, onClick = onClick) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween

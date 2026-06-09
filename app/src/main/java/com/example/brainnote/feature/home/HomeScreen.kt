@@ -34,6 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
+import android.app.Activity
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -42,6 +48,24 @@ fun HomeScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val primaryColor = Color(0xFF7445C8)
     val grayText = Color(0xFF79747E)
+
+    // Scope immersive system bars to home screen destination and restore when leaving
+    val view = LocalView.current
+    val context = LocalContext.current
+    DisposableEffect(view) {
+        val activity = context as? Activity
+        if (activity != null) {
+            val windowInsetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+            windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        }
+        onDispose {
+            if (activity != null) {
+                val windowInsetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -66,7 +90,12 @@ fun HomeScreen(
                     bottom = innerPadding.calculateBottomPadding()
                 )
         ) {
-            NoteDashboardScreen()
+            when (selectedTab) {
+                0 -> NoteDashboardScreen()
+                1 -> FinishedNotesScreen()
+                2 -> SearchNotesScreen()
+                3 -> SettingsScreen()
+            }
         }
     }
 }
@@ -232,6 +261,181 @@ fun RowScope.BottomTabItem(
             fontSize = 11.sp,
             color = if (isSelected) activeColor else inactiveColor,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun FinishedNotesScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F4F8))
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+    ) {
+        Text(
+            text = "Completed Notes",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1E1E1E)
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = "Here are the notes and lists you've fully completed.",
+            fontSize = 14.sp,
+            color = Color(0xFF79747E)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Render completed note card
+        ShoppingListCard(
+            title = "📚 Completed Course Materials",
+            items = listOf("Jetpack Compose Basics", "Navigation component setup", "Figma Mockup Design"),
+            footerText = "Finished",
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchNotesScreen() {
+    var searchQuery by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F4F8))
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+    ) {
+        Text(
+            text = "Search Notes",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1E1E1E)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search your notes or tasks...") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = "Search"
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF7445C8),
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedLabelColor = Color(0xFF7445C8)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White),
+            shape = RoundedCornerShape(12.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Recent Categories",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF1E1E1E)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Ideas", "Shopping", "Backlog", "Work").forEach { category ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFFEEE8F8))
+                        .clickable { searchQuery = category }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = category,
+                        fontSize = 13.sp,
+                        color = Color(0xFF7445C8),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F4F8))
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+    ) {
+        Text(
+            text = "Settings",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1E1E1E)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                SettingsItem(label = "Edit Profile", icon = Icons.Outlined.Settings)
+                Divider(color = Color(0xFFE0E0E0))
+                SettingsItem(label = "Notification Settings", icon = Icons.Outlined.CheckCircle)
+                Divider(color = Color(0xFFE0E0E0))
+                SettingsItem(label = "Theme Preferences", icon = Icons.Outlined.Home)
+                Divider(color = Color(0xFFE0E0E0))
+                SettingsItem(label = "Privacy & Security", icon = Icons.Outlined.Search)
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { }
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = Color(0xFF7445C8)
+            )
+            Text(
+                text = label,
+                fontSize = 15.sp,
+                color = Color(0xFF1E1E1E),
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Text(
+            text = "›",
+            fontSize = 20.sp,
+            color = Color(0xFF9E9E9E)
         )
     }
 }

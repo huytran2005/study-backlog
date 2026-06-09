@@ -103,7 +103,7 @@ fun StudyBacklogApp() {
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onSaveClick = { title, content, color ->
+                onSaveClick = { _, _, _ ->
                     Toast.makeText(context, "Note Saved!", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }

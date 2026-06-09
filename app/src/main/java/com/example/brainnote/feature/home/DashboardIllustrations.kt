@@ -266,22 +266,8 @@ fun OrangeLineChart(modifier: Modifier = Modifier) {
             )
         }
 
-        // Draw standard X-axis label points
-        val textLabels = listOf("T1", "T2", "T3", "T4", "T5", "T6")
-
         // Draw gradient area under the line chart
-        val fillPath = Path().apply {
-            moveTo(points.first().x, h)
-            lineTo(points.first().x, points.first().y)
-            for (i in 1 until points.size) {
-                val pPrev = points[i - 1]
-                val pCurr = points[i]
-                val cpX = (pPrev.x + pCurr.x) / 2
-                quadraticTo(cpX, pPrev.y, pCurr.x, pCurr.y)
-            }
-            lineTo(points.last().x, h)
-            close()
-        }
+        val fillPath = generateSmoothPath(points, h, true)
 
         drawPath(
             brush = Brush.verticalGradient(
@@ -291,15 +277,7 @@ fun OrangeLineChart(modifier: Modifier = Modifier) {
         )
 
         // Draw the smooth orange curve
-        val linePath = Path().apply {
-            moveTo(points.first().x, points.first().y)
-            for (i in 1 until points.size) {
-                val pPrev = points[i - 1]
-                val pCurr = points[i]
-                val cpX = (pPrev.x + pCurr.x) / 2
-                quadraticTo(cpX, pPrev.y, pCurr.x, pCurr.y)
-            }
-        }
+        val linePath = generateSmoothPath(points, h, false)
 
         drawPath(
             path = linePath,
@@ -441,3 +419,26 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.dpToPx(dp: Float): 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.dpToPx(dp: Int): Float {
     return dp * density
 }
+
+private fun generateSmoothPath(points: List<Offset>, h: Float, isClosed: Boolean): Path {
+    val path = Path().apply {
+        if (isClosed) {
+            moveTo(points.first().x, h)
+            lineTo(points.first().x, points.first().y)
+        } else {
+            moveTo(points.first().x, points.first().y)
+        }
+        for (i in 1 until points.size) {
+            val pPrev = points[i - 1]
+            val pCurr = points[i]
+            val cpX = (pPrev.x + pCurr.x) / 2
+            quadraticTo(cpX, pPrev.y, pCurr.x, pCurr.y)
+        }
+        if (isClosed) {
+            lineTo(points.last().x, h)
+            close()
+        }
+    }
+    return path
+}
+

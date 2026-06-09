@@ -52,6 +52,12 @@ val ThemePinkBg = Color(0xFFFFF1F2)
 val TextSlate = Color(0xFF64748B)
 val TextDark = Color(0xFF0F172A)
 
+data class CardTheme(
+    val primary: Color,
+    val tagBg: Color,
+    val tagText: Color
+)
+
 /**
  * CategoryHeader representing a category with its title, description, and gradient icon.
  */
@@ -164,10 +170,9 @@ fun TaskCard(
     timeText: String,
     tagColors: Pair<Color, Color>, // (Bg, Text)
     modifier: Modifier = Modifier,
-    avatarResList: List<Int> = emptyList(),
     badgeText: String? = null
 ) {
-    BaseDashboardCard(modifier = modifier) { isHovered, _ ->
+    BaseDashboardCard(modifier = modifier) { _, _ ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -344,8 +349,7 @@ fun ProgressCard(
     description: String,
     dateText: String,
     progress: Float, // value between 0f and 1f
-    color: Color,
-    tagColors: Pair<Color, Color>,
+    theme: CardTheme,
     modifier: Modifier = Modifier
 ) {
     BaseDashboardCard(modifier = modifier) { isHovered, _ ->
@@ -366,14 +370,14 @@ fun ProgressCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(tagColors.first)
+                        .background(theme.tagBg)
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = badgeText,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = tagColors.second
+                        color = theme.tagText
                     )
                 }
 
@@ -419,7 +423,7 @@ fun ProgressCard(
                         text = "${(animatedProgress * 100).toInt()}%",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = color
+                        color = theme.primary
                     )
                 }
 
@@ -431,7 +435,7 @@ fun ProgressCard(
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(CircleShape)
-                        .background(color.copy(alpha = 0.12f))
+                        .background(theme.primary.copy(alpha = 0.12f))
                 ) {
                     // Filled progress bar
                     Box(
@@ -439,7 +443,7 @@ fun ProgressCard(
                             .fillMaxHeight()
                             .fillMaxWidth(animatedProgress.coerceIn(0f, 1f))
                             .clip(CircleShape)
-                            .background(color)
+                            .background(theme.primary)
                     )
                 }
             }
@@ -456,12 +460,11 @@ fun GoalCard(
     badgeText: String,
     dateText: String,
     progress: Float,
-    color: Color,
-    tagColors: Pair<Color, Color>,
+    theme: CardTheme,
     chartContent: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BaseDashboardCard(modifier = modifier) { isHovered, _ ->
+    BaseDashboardCard(modifier = modifier) { _, _ ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -477,14 +480,14 @@ fun GoalCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(tagColors.first)
+                            .background(theme.tagBg)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = badgeText,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = tagColors.second
+                            color = theme.tagText
                         )
                     }
 
@@ -492,7 +495,7 @@ fun GoalCard(
                         text = "${(progress * 100).toInt()}%",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = color
+                        color = theme.primary
                     )
                 }
 
@@ -532,14 +535,14 @@ fun GoalCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(color.copy(alpha = 0.12f))
+                        .background(theme.primary.copy(alpha = 0.12f))
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = "Tiến độ",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = color
+                        color = theme.primary
                     )
                 }
             }
@@ -612,50 +615,15 @@ fun ChecklistCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsState.forEachIndexed { idx, pair ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val newList = itemsState.toMutableList()
-                                    newList[idx] = Pair(pair.first, !pair.second)
-                                    itemsState = newList
-                                }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = if (pair.second) ThemePink else Color(0xFFCBD5E1),
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
-                                    .background(
-                                        color = if (pair.second) ThemePink else Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (pair.second) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Check,
-                                        contentDescription = "checked",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                }
+                        ChecklistItemRow(
+                            text = pair.first,
+                            isChecked = pair.second,
+                            onCheckedChange = {
+                                val newList = itemsState.toMutableList()
+                                newList[idx] = Pair(pair.first, !pair.second)
+                                itemsState = newList
                             }
-
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Text(
-                                text = pair.first,
-                                fontSize = 13.sp,
-                                color = if (pair.second) TextSlate else TextDark,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        )
                     }
                 }
 
@@ -700,6 +668,54 @@ fun ChecklistCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ChecklistItemRow(
+    text: String,
+    isChecked: Boolean,
+    onCheckedChange: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onCheckedChange)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .border(
+                    width = 1.5.dp,
+                    color = if (isChecked) ThemePink else Color(0xFFCBD5E1),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .background(
+                    color = if (isChecked) ThemePink else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isChecked) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = "checked",
+                    tint = Color.White,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            color = if (isChecked) TextSlate else TextDark,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

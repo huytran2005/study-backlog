@@ -57,46 +57,9 @@ fun DashboardScreen() {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val width = maxWidth
             when {
-                width >= 960.dp -> {
-                    // Desktop: 4 columns
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) { Category1Section() }
-                        Column(modifier = Modifier.weight(1f)) { Category2Section() }
-                        Column(modifier = Modifier.weight(1f)) { Category3Section() }
-                        Column(modifier = Modifier.weight(1f)) { Category4Section() }
-                    }
-                }
-                width >= 600.dp -> {
-                    // Tablet: 2 columns
-                    Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(24.dp)
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) { Category1Section() }
-                            Column(modifier = Modifier.weight(1f)) { Category2Section() }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(24.dp)
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) { Category3Section() }
-                            Column(modifier = Modifier.weight(1f)) { Category4Section() }
-                        }
-                    }
-                }
-                else -> {
-                    // Mobile: 1 column
-                    Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
-                        Category1Section()
-                        Category2Section()
-                        Category3Section()
-                        Category4Section()
-                    }
-                }
+                width >= 960.dp -> DesktopResponsiveLayout()
+                width >= 600.dp -> TabletResponsiveLayout()
+                else -> MobileResponsiveLayout()
             }
         }
 
@@ -114,77 +77,124 @@ fun DashboardScreen() {
 
         // Grid for Bottom Features (2x2 on small, 4x1 on large screens)
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val fWidth = maxWidth
-            if (fWidth >= 720.dp) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    FeatureItem(
-                        icon = "⚡",
-                        title = "Nhanh chóng",
-                        description = "Tạo và ghi chú chỉ trong vài giây",
-                        modifier = Modifier.weight(1f)
-                    )
-                    FeatureItem(
-                        icon = "🎯",
-                        title = "Tập trung",
-                        description = "Tập trung vào điều quan trọng",
-                        modifier = Modifier.weight(1f)
-                    )
-                    FeatureItem(
-                        icon = "📈",
-                        title = "Hiệu quả",
-                        description = "Theo dõi tiến độ dễ dàng",
-                        modifier = Modifier.weight(1f)
-                    )
-                    FeatureItem(
-                        icon = "❤️",
-                        title = "Truyền cảm hứng",
-                        description = "Giao diện đẹp, tạo động lực",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        FeatureItem(
-                            icon = "⚡",
-                            title = "Nhanh chóng",
-                            description = "Ghi chú trong vài giây",
-                            modifier = Modifier.weight(1f)
-                        )
-                        FeatureItem(
-                            icon = "🎯",
-                            title = "Tập trung",
-                            description = "Vào điều quan trọng",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        FeatureItem(
-                            icon = "📈",
-                            title = "Hiệu quả",
-                            description = "Theo dõi tiến độ",
-                            modifier = Modifier.weight(1f)
-                        )
-                        FeatureItem(
-                            icon = "❤️",
-                            title = "Truyền cảm hứng",
-                            description = "Giao diện tạo động lực",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
+            FeaturesBottomGrid(width = maxWidth)
         }
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun DesktopResponsiveLayout() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(modifier = Modifier.weight(1f)) { Category1Section() }
+        Column(modifier = Modifier.weight(1f)) { Category2Section() }
+        Column(modifier = Modifier.weight(1f)) { Category3Section() }
+        Column(modifier = Modifier.weight(1f)) { Category4Section() }
+    }
+}
+
+@Composable
+fun TabletResponsiveLayout() {
+    Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) { Category1Section() }
+            Column(modifier = Modifier.weight(1f)) { Category2Section() }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) { Category3Section() }
+            Column(modifier = Modifier.weight(1f)) { Category4Section() }
+        }
+    }
+}
+
+@Composable
+fun MobileResponsiveLayout() {
+    Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
+        Category1Section()
+        Category2Section()
+        Category3Section()
+        Category4Section()
+    }
+}
+
+@Composable
+fun FeaturesBottomGrid(width: androidx.compose.ui.unit.Dp) {
+    if (width >= 720.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            FeatureItem(
+                icon = "⚡",
+                title = "Nhanh chóng",
+                description = "Tạo và ghi chú chỉ trong vài giây",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureItem(
+                icon = "🎯",
+                title = "Tập trung",
+                description = "Tập trung vào điều quan trọng",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureItem(
+                icon = "📈",
+                title = "Hiệu quả",
+                description = "Theo dõi tiến độ dễ dàng",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureItem(
+                icon = "❤️",
+                title = "Truyền cảm hứng",
+                description = "Giao diện đẹp, tạo động lực",
+                modifier = Modifier.weight(1f)
+            )
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FeatureItem(
+                    icon = "⚡",
+                    title = "Nhanh chóng",
+                    description = "Ghi chú trong vài giây",
+                    modifier = Modifier.weight(1f)
+                )
+                FeatureItem(
+                    icon = "🎯",
+                    title = "Tập trung",
+                    description = "Vào điều quan trọng",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FeatureItem(
+                    icon = "📈",
+                    title = "Hiệu quả",
+                    description = "Theo dõi tiến độ",
+                    modifier = Modifier.weight(1f)
+                )
+                FeatureItem(
+                    icon = "❤️",
+                    title = "Truyền cảm hứng",
+                    description = "Giao diện tạo động lực",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
     }
 }
 
@@ -243,8 +253,7 @@ fun Category2Section() {
             description = "Ôn tập các chương quan trọng, làm bài tập và chuẩn bị cho kỳ thi giữa kỳ.",
             dateText = "12 – 18 May, 2024",
             progress = 0.60f,
-            color = ThemeGreen,
-            tagColors = Pair(ThemeGreenBg, Color(0xFF15803D)),
+            theme = CardTheme(ThemeGreen, ThemeGreenBg, Color(0xFF15803D)),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(210.dp)
@@ -281,8 +290,7 @@ fun Category3Section() {
             badgeText = "Phát triển bản thân",
             dateText = "01/01/2024 – 31/12/2024",
             progress = 0.45f,
-            color = ThemeOrange,
-            tagColors = Pair(ThemeOrangeBg, Color(0xFFC2410C)),
+            theme = CardTheme(ThemeOrange, ThemeOrangeBg, Color(0xFFC2410C)),
             chartContent = {
                 // Draws default empty placeholder when not hovered, draws actual chart
                 OrangeLineChart()
@@ -299,8 +307,7 @@ fun Category3Section() {
             description = "Duy trì thói quen chạy bộ mỗi buổi sáng để cải thiện thể lực và sức bền.",
             dateText = "Hàng ngày",
             progress = 0.38f,
-            color = ThemeOrange,
-            tagColors = Pair(ThemeOrangeBg, Color(0xFFC2410C)),
+            theme = CardTheme(ThemeOrange, ThemeOrangeBg, Color(0xFFC2410C)),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(210.dp)

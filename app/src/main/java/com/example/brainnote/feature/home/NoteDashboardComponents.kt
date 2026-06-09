@@ -350,50 +350,15 @@ fun ShoppingListCard(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items.forEachIndexed { index, itemText ->
                         val isChecked = completedStates[index]
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val newList = completedStates.toMutableList()
-                                    newList[index] = !isChecked
-                                    completedStates = newList
-                                }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = if (isChecked) NotePurple else Color(0xFF6B7280).copy(alpha = 0.6f),
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
-                                    .background(
-                                        color = if (isChecked) NotePurple else Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isChecked) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Check,
-                                        contentDescription = "checked",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(11.dp)
-                                    )
-                                }
+                        NoteShoppingItemRow(
+                            itemText = itemText,
+                            isChecked = isChecked,
+                            onCheckedChange = {
+                                val newList = completedStates.toMutableList()
+                                newList[index] = !isChecked
+                                completedStates = newList
                             }
-
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Text(
-                                text = itemText,
-                                fontSize = 13.sp,
-                                color = if (isChecked) NoteGrayText else NoteDarkText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        )
                     }
                 }
             }
@@ -420,6 +385,54 @@ fun ShoppingListCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun NoteShoppingItemRow(
+    itemText: String,
+    isChecked: Boolean,
+    onCheckedChange: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onCheckedChange)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .border(
+                    width = 1.5.dp,
+                    color = if (isChecked) NotePurple else Color(0xFF6B7280).copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .background(
+                    color = if (isChecked) NotePurple else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isChecked) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = "checked",
+                    tint = Color.White,
+                    modifier = Modifier.size(11.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Text(
+            text = itemText,
+            fontSize = 13.sp,
+            color = if (isChecked) NoteGrayText else NoteDarkText,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -531,11 +544,6 @@ fun FloatingButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    // Smooth press scaling
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.88f else 1f,
-        animationSpec = tween(durationMillis = 100)
-    )
 
     Box(
         modifier = modifier

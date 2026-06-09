@@ -48,7 +48,6 @@ fun HomeScreen(
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val primaryColor = Color(0xFF7445C8)
-    val grayText = Color(0xFF79747E)
 
     // Scope immersive system bars to home screen destination and restore when leaving
     val view = LocalView.current

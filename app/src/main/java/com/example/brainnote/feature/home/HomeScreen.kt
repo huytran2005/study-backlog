@@ -44,7 +44,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onAddNoteClick: () -> Unit = {}
+    onAddNoteClick: () -> Unit = {},
+    onTaskCardClick: (Int) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val primaryColor = Color(0xFF7445C8)
@@ -91,7 +92,7 @@ fun HomeScreen(
                 )
         ) {
             when (selectedTab) {
-                0 -> NoteDashboardScreen()
+                0 -> NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
                 1 -> FinishedNotesScreen()
                 2 -> SearchNotesScreen()
                 3 -> SettingsScreen()

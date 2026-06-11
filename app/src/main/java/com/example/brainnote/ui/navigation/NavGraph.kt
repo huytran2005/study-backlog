@@ -16,6 +16,12 @@ import com.example.brainnote.feature.onboarding.OnboardingOption
 import com.example.brainnote.feature.splash.SplashScreen
 import com.example.brainnote.feature.home.HomeScreen
 import com.example.brainnote.feature.home.AddNoteScreen
+import com.example.brainnote.feature.home.CreateTaskScreen
+import com.example.brainnote.feature.home.CreateWeeklyPlanScreen
+import com.example.brainnote.feature.home.CreateGoalScreen
+import com.example.brainnote.feature.home.NewNoteTypeScreen
+import com.example.brainnote.feature.home.NoteRepository
+import com.example.brainnote.feature.home.NoteCardData
 
 /**
  * Route constants for the application navigation graph.
@@ -30,6 +36,10 @@ object BrainNoteDestinations {
     const val REGISTER = "register"
     const val HOME_ROUTE = "home"
     const val ADD_NOTE_ROUTE = "add_note"
+    const val CREATE_TASK_ROUTE = "create_task"
+    const val NEW_NOTE_TYPE_ROUTE = "new_note_type"
+    const val CREATE_WEEKLY_PLAN_ROUTE = "create_weekly_plan"
+    const val CREATE_GOAL_ROUTE = "create_goal"
 }
 
 /**
@@ -40,6 +50,8 @@ object BrainNoteDestinations {
 fun StudyBacklogApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
+    
+    NoteRepository.initialize(context)
     
     NavHost(
         navController = navController,
@@ -92,7 +104,39 @@ fun StudyBacklogApp() {
         composable(BrainNoteDestinations.HOME_ROUTE) {
             HomeScreen(
                 onAddNoteClick = {
-                    navController.navigate(BrainNoteDestinations.ADD_NOTE_ROUTE)
+                    navController.navigate(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE)
+                },
+                onTaskCardClick = { index ->
+                    navController.navigate("${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex=$index")
+                }
+            )
+        }
+
+        // New Note Type Destination
+        composable(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE) {
+            NewNoteTypeScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onQuickNoteClick = {
+                    navController.navigate(BrainNoteDestinations.ADD_NOTE_ROUTE) {
+                        popUpTo(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE) { inclusive = true }
+                    }
+                },
+                onWeeklyPlanClick = {
+                    navController.navigate(BrainNoteDestinations.CREATE_WEEKLY_PLAN_ROUTE) {
+                        popUpTo(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE) { inclusive = true }
+                    }
+                },
+                onGoalClick = {
+                    navController.navigate(BrainNoteDestinations.CREATE_GOAL_ROUTE) {
+                        popUpTo(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE) { inclusive = true }
+                    }
+                },
+                onTaskClick = {
+                    navController.navigate(BrainNoteDestinations.CREATE_TASK_ROUTE) {
+                        popUpTo(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE) { inclusive = true }
+                    }
                 }
             )
         }
@@ -103,8 +147,96 @@ fun StudyBacklogApp() {
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onSaveClick = { _, _, _ ->
+                onSaveClick = { title, content, category ->
+                    val newNote = NoteCardData.Idea(
+                        title = title,
+                        description = content,
+                        footerText = "Category: $category"
+                    )
+                    NoteRepository.addNote(newNote)
                     Toast.makeText(context, "Note Saved!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Create Task Destination
+        composable(
+            route = "${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex={taskIndex}",
+            arguments = listOf(
+                androidx.navigation.navArgument("taskIndex") {
+                    type = androidx.navigation.NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val taskIndexStr = backStackEntry.arguments?.getString("taskIndex")
+            val taskIndex = taskIndexStr?.toIntOrNull()
+            
+            CreateTaskScreen(
+                taskIndex = taskIndex,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { title, description, dueDate, priority, category, checklist ->
+                    val newTask = NoteCardData.NestedTask(
+                        title = title,
+                        description = description,
+                        tasks = checklist,
+                        footerText = "Priority: $priority | Due: $dueDate | Category: $category"
+                    )
+                    if (taskIndex != null) {
+                        NoteRepository.updateNote(taskIndex, newTask)
+                        Toast.makeText(context, "Task Updated Successfully!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        NoteRepository.addNote(newTask)
+                        Toast.makeText(context, "Task Saved Successfully!", Toast.LENGTH_SHORT).show()
+                    }
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Create Weekly Plan Destination
+        composable(BrainNoteDestinations.CREATE_WEEKLY_PLAN_ROUTE) {
+            CreateWeeklyPlanScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { title, description, week, mainGoal, priority ->
+                    val tasks = listOf(
+                        Pair(description.ifBlank { "Plan Details" }, listOf("Goal: $mainGoal"))
+                    )
+                    val newPlan = NoteCardData.NestedTask(
+                        title = "$title ($week)",
+                        tasks = tasks,
+                        footerText = "Priority: $priority"
+                    )
+                    NoteRepository.addNote(newPlan)
+                    Toast.makeText(context, "Weekly Plan Saved!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Create Goal Destination
+        composable(BrainNoteDestinations.CREATE_GOAL_ROUTE) {
+            CreateGoalScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { title, description, startDate, endDate, status ->
+                    val tasks = listOf(
+                        Pair(description.ifBlank { "Goal Details" }, listOf("Start: $startDate", "End: $endDate"))
+                    )
+                    val newGoal = NoteCardData.NestedTask(
+                        title = title,
+                        tasks = tasks,
+                        footerText = "Status: $status"
+                    )
+                    NoteRepository.addNote(newGoal)
+                    Toast.makeText(context, "Goal Saved!", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }
             )

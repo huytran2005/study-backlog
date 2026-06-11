@@ -10,13 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Face
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,13 +26,15 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNoteScreen(
+fun CreateWeeklyPlanScreen(
     onBackClick: () -> Unit,
-    onSaveClick: (title: String, content: String, category: String) -> Unit
+    onSaveClick: (title: String, description: String, week: String, mainGoal: String, priority: String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Cá nhân") }
+    var description by remember { mutableStateOf("") }
+    var week by remember { mutableStateOf("Tuần này") }
+    var mainGoal by remember { mutableStateOf("") }
+    var priority by remember { mutableStateOf("Thấp") }
     
     val scrollState = rememberScrollState()
 
@@ -54,12 +53,12 @@ fun AddNoteScreen(
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowLeft,
                             contentDescription = "Back",
-                            tint = Color(0xFF7445C8),
+                            tint = Color(0xFF50D38A),
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
                             text = "Back",
-                            color = Color(0xFF7445C8),
+                            color = Color(0xFF50D38A),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -91,19 +90,19 @@ fun AddNoteScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFEEE8F8)),
+                        .background(Color(0xFFE6F7ED)),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF7445C8)),
+                            .background(Color(0xFF50D38A)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Lightbulb",
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Calendar",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
@@ -113,13 +112,13 @@ fun AddNoteScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "Ghi chú nhanh",
+                    text = "Kế hoạch tuần",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF7445C8)
+                    color = Color(0xFF50D38A)
                 )
                 Text(
-                    text = "Ghi lại ý tưởng ngay lập tức",
+                    text = "Lập kế hoạch cho những ngày sắp tới",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -133,9 +132,9 @@ fun AddNoteScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                placeholder = { Text("Nhập tiêu đề để ghi chú...") },
+                placeholder = { Text("Nhập tiêu đề để kế hoạch...") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF7445C8),
+                    focusedBorderColor = Color(0xFF50D38A),
                     unfocusedBorderColor = Color(0xFFE0E0E0)
                 ),
                 shape = RoundedCornerShape(12.dp),
@@ -144,97 +143,118 @@ fun AddNoteScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Content Input
-            Text(text = "Nội dung", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+            // Description Input
+            Text(text = "Mô tả", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                placeholder = { Text("Nhập nội dung ghi chú của bạn...") },
+                value = description,
+                onValueChange = { description = it },
+                placeholder = { Text("Mô tả kế hoạch của bạn...") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF7445C8),
+                    focusedBorderColor = Color(0xFF50D38A),
                     unfocusedBorderColor = Color(0xFFE0E0E0)
                 ),
-                minLines = 5,
+                minLines = 3,
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            // Format bar simulation
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text("B", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 4.dp))
-                Text("I", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Gray)
-                Text("U", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Gray)
-                Text("List", fontSize = 14.sp, color = Color.Gray)
-                Text("Image", fontSize = 14.sp, color = Color.Gray)
-            }
+            // Week Select
+            Text(text = "Tuần", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = week,
+                onValueChange = { week = it },
+                placeholder = { Text("Chọn tuần") },
+                leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF50D38A),
+                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Main Goal
+            Text(text = "Mục tiêu chính", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = mainGoal,
+                onValueChange = { mainGoal = it },
+                placeholder = { Text("Bạn muốn đạt được điều gì trong tuần này?") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF50D38A),
+                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Category
-            Text(text = "Danh mục", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+            // Priority
+            Text(text = "Mức ưu tiên", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
             Spacer(modifier = Modifier.height(8.dp))
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                val categories = listOf("Cá nhân", "Công việc", "Ý tưởng")
-                categories.forEach { category ->
-                    val isSelected = selectedCategory == category
-                    val bg = if (isSelected) Color(0xFFEEE8F8) else Color(0xFFF1F5F9)
-                    val tc = if (isSelected) Color(0xFF7445C8) else Color(0xFF79747E)
-                    val borderCol = if (isSelected) Color(0xFF7445C8) else Color.Transparent
+                val levels = listOf(
+                    Triple("Thấp", Color(0xFFE6F7ED), Color(0xFF3DA36A)),
+                    Triple("Trung bình", Color(0xFFFFF7ED), Color(0xFFEA580C)),
+                    Triple("Cao", Color(0xFFFFF1F2), Color(0xFFE11D48))
+                )
+                levels.forEach { level ->
+                    val isSelected = priority == level.first
+                    val bg = if (isSelected) level.second else Color(0xFFF1F5F9)
+                    val tc = if (isSelected) level.third else Color(0xFF79747E)
+                    val borderCol = if (isSelected) level.third else Color.Transparent
                     Box(
                         modifier = Modifier
+                            .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
                             .background(bg)
                             .border(1.dp, borderCol, RoundedCornerShape(12.dp))
-                            .clickable { selectedCategory = category }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable { priority = level.first }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = tc,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                            }
-                            Text(text = category, color = tc, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        }
+                        Text(
+                            text = level.first,
+                            color = tc,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Suggestions
-            Text(text = "Gợi ý nhanh", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Tips Box
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                listOf("Ý tưởng mới", "Việc cần nhớ", "Cảm hứng").forEach { hint ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFF1F5F9))
-                            .clickable {
-                                if (title.isEmpty()) title = hint else content += "\n- $hint"
-                            }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(text = hint, color = Color(0xFF79747E), fontSize = 13.sp)
-                    }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "💡 Gợi ý để bắt đầu",
+                        color = Color(0xFF15803D),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "• Đặt 3 ưu tiên quan trọng nhất\n• Phân bổ thời gian hợp lý\n• Đánh giá vào cuối tuần",
+                        color = Color(0xFF166534),
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
+                    )
                 }
             }
             
@@ -242,8 +262,8 @@ fun AddNoteScreen(
             
             // Save Button
             Button(
-                onClick = { onSaveClick(title, content, selectedCategory) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7445C8)),
+                onClick = { onSaveClick(title, description, week, mainGoal, priority) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF50D38A)),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -254,9 +274,9 @@ fun AddNoteScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Lưu ghi chú", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Tạo kế hoạch", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White)
+                    Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null, tint = Color.White)
                 }
             }
             

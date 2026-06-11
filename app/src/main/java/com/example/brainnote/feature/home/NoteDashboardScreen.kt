@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 // Polymorphic data model representing different note cards
 sealed class NoteCardData {
@@ -37,36 +41,47 @@ sealed class NoteCardData {
     ) : NoteCardData()
 }
 
-// Mock Data List mapping to different card templates
-val mockNotes = listOf(
-    NoteCardData.Idea(
-        title = "New Product\nIdea Design",
-        description = "Create a modern SaaS application for tracking task items and managing student backlog items easily with AI.",
-        footerText = "Interesting Idea"
-    ),
-    NoteCardData.ImageIdea(
-        title = "Idea Layout Sketch",
-        description = "Sketch layouts on paper first, then transfer them into high-fidelity Figma components with a soft pastel theme.",
-        footerText = "Explore UI Kit"
-    ),
-    NoteCardData.ShoppingList(
-        title = "🛒 Monthly Buy List",
-        items = listOf("Notebooks", "Sticky Notes", "Drawing Pens", "Mechanical Pencil"),
-        footerText = "Figma Community"
-    ),
-    NoteCardData.NestedTask(
-        title = "Weekly Sub-tasks",
-        tasks = listOf(
-            Pair("Preparation", listOf("Verify UI assets", "Design custom SVG graphics")),
-            Pair("Development", listOf("Setup Jetpack Compose", "Implement Canvas drawings"))
-        ),
-        footerText = "In Progress"
+object NoteRepository {
+    private val _notes = MutableStateFlow<List<NoteCardData>>(
+        listOf(
+            NoteCardData.Idea(
+                title = "New Product\nIdea Design",
+                description = "Create a modern SaaS application for tracking task items and managing student backlog items easily with AI.",
+                footerText = "Interesting Idea"
+            ),
+            NoteCardData.ImageIdea(
+                title = "Idea Layout Sketch",
+                description = "Sketch layouts on paper first, then transfer them into high-fidelity Figma components with a soft pastel theme.",
+                footerText = "Explore UI Kit"
+            ),
+            NoteCardData.ShoppingList(
+                title = "🛒 Monthly Buy List",
+                items = listOf("Notebooks", "Sticky Notes", "Drawing Pens", "Mechanical Pencil"),
+                footerText = "Figma Community"
+            ),
+            NoteCardData.NestedTask(
+                title = "Weekly Sub-tasks",
+                tasks = listOf(
+                    Pair("Preparation", listOf("Verify UI assets", "Design custom SVG graphics")),
+                    Pair("Development", listOf("Setup Jetpack Compose", "Implement Canvas drawings"))
+                ),
+                footerText = "In Progress"
+            )
+        )
     )
-)
+    val notes = _notes.asStateFlow()
+
+    fun addNote(note: NoteCardData) {
+        _notes.value = _notes.value + note
+    }
+}
 
 @Composable
-fun NoteDashboardScreen() {
+fun NoteDashboardScreen(
+    onTaskCardClick: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
+    val notesList by NoteRepository.notes.collectAsState()
 
     Box(
         modifier = Modifier
@@ -101,8 +116,8 @@ fun NoteDashboardScreen() {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    mockNotes.filterIndexed { index, _ -> index % 2 == 0 }.forEach { item ->
-                        RenderNoteCard(item)
+                    notesList.filterIndexed { index, _ -> index % 2 == 0 }.forEach { item ->
+                        RenderNoteCard(item, onTaskCardClick = onTaskCardClick)
                     }
                 }
 
@@ -111,8 +126,8 @@ fun NoteDashboardScreen() {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    mockNotes.filterIndexed { index, _ -> index % 2 == 1 }.forEach { item ->
-                        RenderNoteCard(item)
+                    notesList.filterIndexed { index, _ -> index % 2 == 1 }.forEach { item ->
+                        RenderNoteCard(item, onTaskCardClick = onTaskCardClick)
                     }
                 }
             }
@@ -127,7 +142,10 @@ fun NoteDashboardScreen() {
  * Polymorphic card selector rendering the proper layout card per card data type.
  */
 @Composable
-fun RenderNoteCard(data: NoteCardData) {
+fun RenderNoteCard(
+    data: NoteCardData,
+    onTaskCardClick: () -> Unit
+) {
     when (data) {
         is NoteCardData.Idea -> {
             IdeaCard(
@@ -158,7 +176,8 @@ fun RenderNoteCard(data: NoteCardData) {
                 title = data.title,
                 tasks = data.tasks,
                 footerText = data.footerText,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onTaskCardClick
             )
         }
     }

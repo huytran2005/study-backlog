@@ -45,7 +45,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 @Composable
 fun HomeScreen(
     onAddNoteClick: () -> Unit = {},
-    onTaskCardClick: () -> Unit = {}
+    onTaskCardClick: (Int) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val primaryColor = Color(0xFF7445C8)

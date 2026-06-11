@@ -51,6 +51,8 @@ fun StudyBacklogApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     
+    NoteRepository.initialize(context)
+    
     NavHost(
         navController = navController,
         startDestination = BrainNoteDestinations.SPLASH_ROUTE
@@ -104,8 +106,8 @@ fun StudyBacklogApp() {
                 onAddNoteClick = {
                     navController.navigate(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE)
                 },
-                onTaskCardClick = {
-                    navController.navigate(BrainNoteDestinations.CREATE_TASK_ROUTE)
+                onTaskCardClick = { index ->
+                    navController.navigate("${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex=$index")
                 }
             )
         }
@@ -159,24 +161,38 @@ fun StudyBacklogApp() {
         }
 
         // Create Task Destination
-        composable(BrainNoteDestinations.CREATE_TASK_ROUTE) {
+        composable(
+            route = "${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex={taskIndex}",
+            arguments = listOf(
+                androidx.navigation.navArgument("taskIndex") {
+                    type = androidx.navigation.NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val taskIndexStr = backStackEntry.arguments?.getString("taskIndex")
+            val taskIndex = taskIndexStr?.toIntOrNull()
+            
             CreateTaskScreen(
+                taskIndex = taskIndex,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onSaveClick = { title, description, dueDate, priority, category, checklist ->
-                    val tasks = if (description.isNotBlank()) {
-                        listOf(Pair(description, emptyList<String>())) + checklist
-                    } else {
-                        checklist
-                    }
                     val newTask = NoteCardData.NestedTask(
                         title = title,
-                        tasks = tasks,
+                        description = description,
+                        tasks = checklist,
                         footerText = "Priority: $priority | Due: $dueDate | Category: $category"
                     )
-                    NoteRepository.addNote(newTask)
-                    Toast.makeText(context, "Task Saved Successfully!", Toast.LENGTH_SHORT).show()
+                    if (taskIndex != null) {
+                        NoteRepository.updateNote(taskIndex, newTask)
+                        Toast.makeText(context, "Task Updated Successfully!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        NoteRepository.addNote(newTask)
+                        Toast.makeText(context, "Task Saved Successfully!", Toast.LENGTH_SHORT).show()
+                    }
                     navController.popBackStack()
                 }
             )

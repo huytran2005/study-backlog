@@ -187,7 +187,7 @@ fun AddNoteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                enabled = title.isNotBlank()
+                enabled = title.isNotBlank() || content.isNotBlank()
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

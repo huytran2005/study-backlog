@@ -445,6 +445,7 @@ fun NestedTaskCard(
     tasks: List<Pair<String, List<String>>>,
     footerText: String,
     modifier: Modifier = Modifier,
+    description: String = "",
     onClick: (() -> Unit)? = null
 ) {
     BaseNoteCard(modifier = modifier, backgroundColor = NoteBeige, onClick = onClick) {
@@ -459,6 +460,16 @@ fun NestedTaskCard(
                     fontWeight = FontWeight.Bold,
                     color = NoteDarkText
                 )
+
+                if (description.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = description,
+                        fontSize = 13.sp,
+                        color = NoteGrayText,
+                        lineHeight = 18.sp
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(14.dp))
 

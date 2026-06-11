@@ -26,6 +26,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.UUID
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
+
+val TaskGroupsSaver = listSaver<SnapshotStateList<TaskGroupState>, List<Any>>(
+    save = { list ->
+        list.map { listOf(it.id, it.name, it.subtasks) }
+    },
+    restore = { restoredList ->
+        val snapshotList = mutableStateListOf<TaskGroupState>()
+        restoredList.forEach { item ->
+            val id = item[0] as String
+            val name = item[1] as String
+            @Suppress("UNCHECKED_CAST")
+            val subtasks = (item[2] as List<*>).map { it as String }
+            snapshotList.add(TaskGroupState(id, name, subtasks))
+        }
+        snapshotList
+    }
+)
 
 // State data structure matching the NestedTask data model
 data class TaskGroupState(
@@ -37,27 +58,54 @@ data class TaskGroupState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskScreen(
+    taskIndex: Int? = null,
     onBackClick: () -> Unit,
     onSaveClick: (title: String, description: String, dueDate: String, priority: String, category: String, checklist: List<Pair<String, List<String>>>) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var dueDate by remember { mutableStateOf("") }
-    var priority by remember { mutableStateOf("Trung bình") }
-    var selectedCategory by remember { mutableStateOf("Study") }
+    val existingTask = remember(taskIndex) {
+        taskIndex?.let { NoteRepository.notes.value.getOrNull(it) as? NoteCardData.NestedTask }
+    }
+
+    val initialPriority = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Priority: ")) {
+            text.substringAfter("Priority: ").substringBefore(" |")
+        } else "Trung bình"
+    } ?: "Trung bình"
+
+    val initialDueDate = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Due: ")) {
+            text.substringAfter("Due: ").substringBefore(" |")
+        } else ""
+    } ?: ""
+
+    val initialCategory = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Category: ")) {
+            text.substringAfter("Category: ")
+        } else "Study"
+    } ?: "Study"
+
+    var title by rememberSaveable { mutableStateOf(existingTask?.title ?: "") }
+    var description by rememberSaveable { mutableStateOf(existingTask?.description ?: "") }
+    var dueDate by rememberSaveable { mutableStateOf(initialDueDate) }
+    var priority by rememberSaveable { mutableStateOf(initialPriority) }
+    var selectedCategory by rememberSaveable { mutableStateOf(initialCategory) }
     
-    // Nested Checklist Groups State
-    val taskGroups = remember { 
-        mutableStateListOf(
-            TaskGroupState(name = "Preparation", subtasks = listOf("Verify UI assets", "Design custom SVG graphics")),
-            TaskGroupState(name = "Development", subtasks = listOf("Setup Jetpack Compose"))
-        ) 
+    // Nested Checklist Groups State - empty by default, populated if editing
+    val taskGroups = rememberSaveable(saver = TaskGroupsSaver) { 
+        val initialList = mutableStateListOf<TaskGroupState>()
+        existingTask?.tasks?.forEach { (name, subtasks) ->
+            initialList.add(TaskGroupState(name = name, subtasks = subtasks))
+        }
+        initialList
     }
     
-    var newGroupTitle by remember { mutableStateOf("") }
+    var newGroupTitle by rememberSaveable { mutableStateOf("") }
     val newSubtaskTitles = remember { mutableStateMapOf<String, String>() }
     
-    var showError by remember { mutableStateOf(false) }
+    var showError by rememberSaveable { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -425,7 +473,8 @@ fun CreateTaskScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Tạo nhiệm vụ", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    val buttonText = if (taskIndex != null) "Lưu nhiệm vụ" else "Tạo nhiệm vụ"
+                    Text(buttonText, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White)
                 }

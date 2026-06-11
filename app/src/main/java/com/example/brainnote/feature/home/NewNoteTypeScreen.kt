@@ -38,46 +38,11 @@ fun NewNoteTypeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "New Notes",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
-                            color = Color(0xFF1E1E1E),
-                            modifier = Modifier.padding(end = 48.dp) // Offset back button to center the title
-                        )
-                    }
-                },
-                navigationIcon = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(onClick = onBackClick)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
-                            contentDescription = "Back",
-                            tint = Color(0xFF7445C8),
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = "Back",
-                            color = Color(0xFF7445C8),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+            FormTopAppBar(
+                onBackClick = onBackClick,
+                primaryColor = Color(0xFF7445C8),
+                showCloseButton = false,
+                titleText = "New Notes"
             )
         },
         containerColor = Color.White

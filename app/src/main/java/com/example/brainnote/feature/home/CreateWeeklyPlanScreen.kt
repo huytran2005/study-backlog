@@ -40,36 +40,9 @@ fun CreateWeeklyPlanScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(onClick = onBackClick)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
-                            contentDescription = "Back",
-                            tint = Color(0xFF50D38A),
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = "Back",
-                            color = Color(0xFF50D38A),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            FormTopAppBar(
+                onBackClick = onBackClick,
+                primaryColor = Color(0xFF50D38A)
             )
         },
         containerColor = Color.White
@@ -82,47 +55,13 @@ fun CreateWeeklyPlanScreen(
                 .padding(horizontal = 24.dp)
         ) {
             // Header Section
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE6F7ED)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF50D38A)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Calendar",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Text(
-                    text = "Kế hoạch tuần",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF50D38A)
-                )
-                Text(
-                    text = "Lập kế hoạch cho những ngày sắp tới",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
+            FormHeader(
+                title = "Kế hoạch tuần",
+                subtitle = "Lập kế hoạch cho những ngày sắp tới",
+                icon = Icons.Default.DateRange,
+                primaryColor = Color(0xFF50D38A),
+                backgroundColor = Color(0xFFE6F7ED)
+            )
             
             Spacer(modifier = Modifier.height(28.dp))
             

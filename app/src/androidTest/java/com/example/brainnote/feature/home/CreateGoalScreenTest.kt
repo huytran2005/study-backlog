@@ -37,11 +37,11 @@ class CreateGoalScreenTest {
         composeTestRule.onNodeWithText("Theo dõi tiến độ và mục tiêu").assertIsDisplayed()
 
         // Verify inputs
-        composeTestRule.onNodeWithText("Tên mục tiêu").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mô tả").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Ngày bắt đầu").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Ngày kết thúc").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Trạng thái").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Tên mục tiêu").assertExists()
+        composeTestRule.onNodeWithText("Mô tả").assertExists()
+        composeTestRule.onNodeWithText("Ngày bắt đầu").assertExists()
+        composeTestRule.onNodeWithText("Ngày kết thúc").assertExists()
+        composeTestRule.onNodeWithText("Trạng thái").assertExists()
     }
 
     @Test

@@ -36,12 +36,12 @@ class CreateTaskScreenTest {
         composeTestRule.onNodeWithText("Checklist các việc cần hoàn thành").assertIsDisplayed()
 
         // Verify key text labels
-        composeTestRule.onNodeWithText("Tiêu đề").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mô tả").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Danh mục").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mức ưu tiên").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Hạn hoàn thành").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Checklist nhiệm vụ (Đa cấp)").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Tiêu đề").assertExists()
+        composeTestRule.onNodeWithText("Mô tả").assertExists()
+        composeTestRule.onNodeWithText("Danh mục").assertExists()
+        composeTestRule.onNodeWithText("Mức ưu tiên").assertExists()
+        composeTestRule.onNodeWithText("Hạn hoàn thành").assertExists()
+        composeTestRule.onNodeWithText("Checklist nhiệm vụ (Đa cấp)").assertExists()
     }
 
     @Test

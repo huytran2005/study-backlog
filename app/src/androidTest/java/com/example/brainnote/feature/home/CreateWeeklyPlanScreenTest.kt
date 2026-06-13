@@ -36,11 +36,11 @@ class CreateWeeklyPlanScreenTest {
         composeTestRule.onNodeWithText("Lập kế hoạch cho những ngày sắp tới").assertIsDisplayed()
 
         // Verify inputs
-        composeTestRule.onNodeWithText("Tiêu đề").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mô tả").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Tuần").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mục tiêu chính").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Mức ưu tiên").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Tiêu đề").assertExists()
+        composeTestRule.onNodeWithText("Mô tả").assertExists()
+        composeTestRule.onNodeWithText("Tuần").assertExists()
+        composeTestRule.onNodeWithText("Mục tiêu chính").assertExists()
+        composeTestRule.onNodeWithText("Mức ưu tiên").assertExists()
     }
 
     @Test

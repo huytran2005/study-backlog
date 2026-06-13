@@ -41,24 +41,18 @@ fun CreateGoalScreen(
     
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    val startDatePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            startDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-    val endDatePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            endDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
+    
+    fun showDatePicker(onDateSelected: (String) -> Unit) {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                onDateSelected(String.format("%02d/%02d/%d", dayOfMonth, month + 1, year))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
     val scrollState = rememberScrollState()
 
@@ -129,59 +123,19 @@ fun CreateGoalScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Ngày bắt đầu", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { startDatePickerDialog.show() }
-                    ) {
-                        OutlinedTextField(
-                            value = startDate,
-                            onValueChange = {},
-                            readOnly = true,
-                            enabled = false,
-                            placeholder = { Text("Chọn ngày") },
-                            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                disabledTextColor = Color(0xFF1E1E1E),
-                                disabledBorderColor = Color(0xFFE0E0E0),
-                                disabledPlaceholderColor = Color.Gray,
-                                disabledLeadingIconColor = Color.Gray
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
+                GoalDateInput(
+                    label = "Ngày bắt đầu",
+                    dateValue = startDate,
+                    onClick = { showDatePicker { startDate = it } },
+                    modifier = Modifier.weight(1f)
+                )
                 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Ngày kết thúc", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { endDatePickerDialog.show() }
-                    ) {
-                        OutlinedTextField(
-                            value = endDate,
-                            onValueChange = {},
-                            readOnly = true,
-                            enabled = false,
-                            placeholder = { Text("Chọn ngày") },
-                            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                disabledTextColor = Color(0xFF1E1E1E),
-                                disabledBorderColor = Color(0xFFE0E0E0),
-                                disabledPlaceholderColor = Color.Gray,
-                                disabledLeadingIconColor = Color.Gray
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
+                GoalDateInput(
+                    label = "Ngày kết thúc",
+                    dateValue = endDate,
+                    onClick = { showDatePicker { endDate = it } },
+                    modifier = Modifier.weight(1f)
+                )
             }
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -271,6 +225,41 @@ fun CreateGoalScreen(
             }
             
             Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun GoalDateInput(
+    label: String,
+    dateValue: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+        ) {
+            OutlinedTextField(
+                value = dateValue,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                placeholder = { Text("Chọn ngày") },
+                leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color(0xFF1E1E1E),
+                    disabledBorderColor = Color(0xFFE0E0E0),
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledLeadingIconColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

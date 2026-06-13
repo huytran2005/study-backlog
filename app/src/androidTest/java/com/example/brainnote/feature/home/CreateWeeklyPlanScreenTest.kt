@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -95,8 +96,9 @@ class CreateWeeklyPlanScreenTest {
         fields[1].performTextInput("Complete chapters 4 & 5")
         
         // fields[2] is week (initial value is "Tuần này")
-        // we can type text replacement or clear it and type:
-        fields[2].performTextInput(" 15/06 - 21/06")
+        // we clear it first and then input the custom value
+        fields[2].performTextClearance()
+        fields[2].performTextInput("15/06 - 21/06")
         
         fields[3].performTextInput("Pass midterms")
 
@@ -108,7 +110,7 @@ class CreateWeeklyPlanScreenTest {
 
         assertEquals("Study Plan", savedTitle)
         assertEquals("Complete chapters 4 & 5", savedDescription)
-        assertEquals("Tuần này 15/06 - 21/06", savedWeek)
+        assertEquals("15/06 - 21/06", savedWeek)
         assertEquals("Pass midterms", savedMainGoal)
         assertEquals("Trung bình", savedPriority)
     }

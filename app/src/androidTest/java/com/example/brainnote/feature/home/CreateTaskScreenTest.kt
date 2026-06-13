@@ -107,7 +107,7 @@ class CreateTaskScreenTest {
         // 5. We skip entering date because it is read-only in tests
 
         // 6. Add Checklist Group (the group title is the next editable field)
-        composeTestRule.onNodeWithText("Thêm nhóm checklist...").performScrollTo().performTextInput("Setup Environment")
+        composeTestRule.onNodeWithText("Nhập nhóm nhiệm vụ chính...").performScrollTo().performTextInput("Setup Environment")
         composeTestRule.onNodeWithContentDescription("Add Group").performScrollTo().performClick()
 
         // Assert new group is displayed

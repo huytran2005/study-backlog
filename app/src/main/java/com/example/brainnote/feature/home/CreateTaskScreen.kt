@@ -414,30 +414,11 @@ private fun DueDateInput(
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    Text(text = "Hạn hoàn thành", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-    Spacer(modifier = Modifier.height(8.dp))
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { datePickerDialog.show() }
-    ) {
-        OutlinedTextField(
-            value = dueDate,
-            onValueChange = {},
-            readOnly = true,
-            enabled = false,
-            placeholder = { Text("Chọn ngày") },
-            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = Color(0xFF1E1E1E),
-                disabledBorderColor = Color(0xFFE0E0E0),
-                disabledPlaceholderColor = Color.Gray,
-                disabledLeadingIconColor = Color.Gray
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    FormDateInput(
+        label = "Hạn hoàn thành",
+        dateValue = dueDate,
+        onClick = { datePickerDialog.show() }
+    )
 }
 
 @Composable

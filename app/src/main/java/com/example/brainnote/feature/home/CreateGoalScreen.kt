@@ -123,14 +123,14 @@ fun CreateGoalScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                GoalDateInput(
+                FormDateInput(
                     label = "Ngày bắt đầu",
                     dateValue = startDate,
                     onClick = { showDatePicker { startDate = it } },
                     modifier = Modifier.weight(1f)
                 )
                 
-                GoalDateInput(
+                FormDateInput(
                     label = "Ngày kết thúc",
                     dateValue = endDate,
                     onClick = { showDatePicker { endDate = it } },
@@ -225,41 +225,6 @@ fun CreateGoalScreen(
             }
             
             Spacer(modifier = Modifier.height(40.dp))
-        }
-    }
-}
-
-@Composable
-private fun GoalDateInput(
-    label: String,
-    dateValue: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onClick() }
-        ) {
-            OutlinedTextField(
-                value = dateValue,
-                onValueChange = {},
-                readOnly = true,
-                enabled = false,
-                placeholder = { Text("Chọn ngày") },
-                leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color(0xFF1E1E1E),
-                    disabledBorderColor = Color(0xFFE0E0E0),
-                    disabledPlaceholderColor = Color.Gray,
-                    disabledLeadingIconColor = Color.Gray
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

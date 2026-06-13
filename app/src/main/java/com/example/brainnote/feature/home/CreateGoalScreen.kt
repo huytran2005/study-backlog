@@ -22,6 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.DatePickerDialog
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +39,27 @@ fun CreateGoalScreen(
     var endDate by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("Đang thực hiện") }
     
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val startDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            startDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+    val endDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            endDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -107,35 +132,55 @@ fun CreateGoalScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = "Ngày bắt đầu", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
                     Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = startDate,
-                        onValueChange = { startDate = it },
-                        placeholder = { Text("Chọn ngày") },
-                        leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF1C40F),
-                            unfocusedBorderColor = Color(0xFFE0E0E0)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { startDatePickerDialog.show() }
+                    ) {
+                        OutlinedTextField(
+                            value = startDate,
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false,
+                            placeholder = { Text("Chọn ngày") },
+                            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = Color(0xFF1E1E1E),
+                                disabledBorderColor = Color(0xFFE0E0E0),
+                                disabledPlaceholderColor = Color.Gray,
+                                disabledLeadingIconColor = Color.Gray
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = "Ngày kết thúc", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
                     Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = endDate,
-                        onValueChange = { endDate = it },
-                        placeholder = { Text("Chọn ngày") },
-                        leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF1C40F),
-                            unfocusedBorderColor = Color(0xFFE0E0E0)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { endDatePickerDialog.show() }
+                    ) {
+                        OutlinedTextField(
+                            value = endDate,
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false,
+                            placeholder = { Text("Chọn ngày") },
+                            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = Color(0xFF1E1E1E),
+                                disabledBorderColor = Color(0xFFE0E0E0),
+                                disabledPlaceholderColor = Color.Gray,
+                                disabledLeadingIconColor = Color.Gray
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
             

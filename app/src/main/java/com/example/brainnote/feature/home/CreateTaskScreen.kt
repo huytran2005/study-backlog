@@ -29,6 +29,10 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import android.app.DatePickerDialog
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
+
 
 private const val PRIORITY_LOW = "Thấp"
 private const val PRIORITY_MEDIUM = "Trung bình"
@@ -397,20 +401,43 @@ private fun DueDateInput(
     dueDate: String,
     onDueDateChange: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val formattedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+            onDueDateChange(formattedDate)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
     Text(text = "Hạn hoàn thành", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
     Spacer(modifier = Modifier.height(8.dp))
-    OutlinedTextField(
-        value = dueDate,
-        onValueChange = onDueDateChange,
-        placeholder = { Text("Chọn ngày") },
-        leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFFD53F8C),
-            unfocusedBorderColor = Color(0xFFE0E0E0)
-        ),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { datePickerDialog.show() }
+    ) {
+        OutlinedTextField(
+            value = dueDate,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            placeholder = { Text("Chọn ngày") },
+            leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor = Color(0xFF1E1E1E),
+                disabledBorderColor = Color(0xFFE0E0E0),
+                disabledPlaceholderColor = Color.Gray,
+                disabledLeadingIconColor = Color.Gray
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable

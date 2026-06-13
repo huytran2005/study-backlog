@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -125,5 +126,40 @@ fun FormHeader(
             fontSize = 14.sp,
             color = Color.Gray
         )
+    }
+}
+
+@Composable
+fun FormDateInput(
+    label: String,
+    dateValue: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+        ) {
+            OutlinedTextField(
+                value = dateValue,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                placeholder = { Text("Chọn ngày") },
+                leadingIcon = { Icon(imageVector = androidx.compose.material.icons.Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color(0xFF1E1E1E),
+                    disabledBorderColor = Color(0xFFE0E0E0),
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledLeadingIconColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

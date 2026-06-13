@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.coil.gif)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.json:json:20240303")
     testImplementation(libs.mockk) {
         exclude(group = "org.junit.jupiter")
     }

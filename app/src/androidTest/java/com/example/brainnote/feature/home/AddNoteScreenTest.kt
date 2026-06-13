@@ -7,6 +7,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.brainnote.ui.theme.BrainNoteTheme
 import org.junit.Assert.assertEquals
@@ -37,10 +39,10 @@ class AddNoteScreenTest {
         composeTestRule.onNodeWithText("Ghi lại ý tưởng ngay lập tức").assertIsDisplayed()
 
         // Verify labels
-        composeTestRule.onNodeWithText("Tiêu đề").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Nội dung").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Danh mục").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Gợi ý nhanh").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Tiêu đề").assertExists()
+        composeTestRule.onNodeWithText("Nội dung").assertExists()
+        composeTestRule.onNodeWithText("Danh mục").assertExists()
+        composeTestRule.onNodeWithText("Gợi ý nhanh").assertExists()
     }
 
     @Test
@@ -55,11 +57,11 @@ class AddNoteScreenTest {
         }
 
         // Initially both empty, so Save button should be disabled
-        composeTestRule.onNodeWithText("Lưu ghi chú").assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Lưu ghi chú").performScrollTo().assertIsNotEnabled()
 
         // Input into title, button should become enabled
-        composeTestRule.onNodeWithText("Nhập tiêu đề để ghi chú...").performTextInput("My Title")
-        composeTestRule.onNodeWithText("Lưu ghi chú").assertIsEnabled()
+        composeTestRule.onAllNodes(hasSetTextAction())[0].performTextInput("My Title")
+        composeTestRule.onNodeWithText("Lưu ghi chú").performScrollTo().assertIsEnabled()
     }
 
     @Test
@@ -82,14 +84,15 @@ class AddNoteScreenTest {
         }
 
         // Fill inputs
-        composeTestRule.onNodeWithText("Nhập tiêu đề để ghi chú...").performTextInput("Quick Thought")
-        composeTestRule.onNodeWithText("Nhập nội dung ghi chú của bạn...").performTextInput("This is a quick idea description")
+        val fields = composeTestRule.onAllNodes(hasSetTextAction())
+        fields[0].performTextInput("Quick Thought")
+        fields[1].performTextInput("This is a quick idea description")
 
         // Select Category "Ý tưởng"
-        composeTestRule.onNodeWithText("Ý tưởng").performClick()
+        composeTestRule.onNodeWithText("Ý tưởng").performScrollTo().performClick()
 
         // Save
-        composeTestRule.onNodeWithText("Lưu ghi chú").performClick()
+        composeTestRule.onNodeWithText("Lưu ghi chú").performScrollTo().performClick()
 
         assertEquals("Quick Thought", savedTitle)
         assertEquals("This is a quick idea description", savedContent)

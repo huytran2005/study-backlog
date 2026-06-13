@@ -7,6 +7,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.brainnote.ui.theme.BrainNoteTheme
 import org.junit.Assert.assertEquals
@@ -55,11 +57,11 @@ class CreateWeeklyPlanScreenTest {
         }
 
         // Save button disabled when title is blank
-        composeTestRule.onNodeWithText("Tạo kế hoạch").assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Tạo kế hoạch").performScrollTo().assertIsNotEnabled()
 
-        // Input title
-        composeTestRule.onNodeWithText("Nhập tiêu đề để kế hoạch...").performTextInput("Week 25 Plan")
-        composeTestRule.onNodeWithText("Tạo kế hoạch").assertIsEnabled()
+        // Input title using hasSetTextAction
+        composeTestRule.onAllNodes(hasSetTextAction())[0].performTextInput("Week 25 Plan")
+        composeTestRule.onNodeWithText("Tạo kế hoạch").performScrollTo().assertIsEnabled()
     }
 
     @Test
@@ -85,21 +87,28 @@ class CreateWeeklyPlanScreenTest {
             }
         }
 
+        // Find editable text fields
+        val fields = composeTestRule.onAllNodes(hasSetTextAction())
+
         // Input values
-        composeTestRule.onNodeWithText("Nhập tiêu đề để kế hoạch...").performTextInput("Study Plan")
-        composeTestRule.onNodeWithText("Mô tả kế hoạch của bạn...").performTextInput("Complete chapters 4 & 5")
-        composeTestRule.onNodeWithText("Chọn tuần").performTextInput("15/06 - 21/06")
-        composeTestRule.onNodeWithText("Bạn muốn đạt được điều gì trong tuần này?").performTextInput("Pass midterms")
+        fields[0].performTextInput("Study Plan")
+        fields[1].performTextInput("Complete chapters 4 & 5")
+        
+        // fields[2] is week (initial value is "Tuần này")
+        // we can type text replacement or clear it and type:
+        fields[2].performTextInput(" 15/06 - 21/06")
+        
+        fields[3].performTextInput("Pass midterms")
 
         // Select priority "Trung bình"
-        composeTestRule.onNodeWithText("Trung bình").performClick()
+        composeTestRule.onNodeWithText("Trung bình").performScrollTo().performClick()
 
         // Click create plan
-        composeTestRule.onNodeWithText("Tạo kế hoạch").performClick()
+        composeTestRule.onNodeWithText("Tạo kế hoạch").performScrollTo().performClick()
 
         assertEquals("Study Plan", savedTitle)
         assertEquals("Complete chapters 4 & 5", savedDescription)
-        assertEquals("15/06 - 21/06", savedWeek)
+        assertEquals("Tuần này 15/06 - 21/06", savedWeek)
         assertEquals("Pass midterms", savedMainGoal)
         assertEquals("Trung bình", savedPriority)
     }

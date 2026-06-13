@@ -8,6 +8,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.brainnote.ui.theme.BrainNoteTheme
 import org.junit.Assert.assertEquals
@@ -108,7 +110,7 @@ class CreateTaskScreenTest {
 
         // 6. Add Checklist Group (the group title is the next editable field)
         composeTestRule.onNodeWithText("Nhập nhóm nhiệm vụ chính...").performScrollTo().performTextInput("Setup Environment")
-        composeTestRule.onNodeWithContentDescription("Add Group").performScrollTo().performClick()
+        composeTestRule.onNode(hasContentDescription("Add Group") or hasText("+ Nhóm")).performScrollTo().performClick()
 
         // Assert new group is displayed
         composeTestRule.onNodeWithText("Setup Environment").performScrollTo().assertExists()

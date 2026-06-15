@@ -32,7 +32,7 @@ fun CreateWeeklyPlanScreen(
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var week by remember { mutableStateOf("Tuần này") }
+    var week by remember { mutableStateOf("Kế hoạch tuần") }
     var mainGoal by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf("Thấp") }
     
@@ -100,18 +100,36 @@ fun CreateWeeklyPlanScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Week Select
-            Text(text = "Tuần", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
-            Spacer(modifier = Modifier.height(8.dp))
+            // Week Select (Timeframe Selection)
+            Text(
+                text = "Thời gian thực hiện", 
+                fontWeight = FontWeight.SemiBold, 
+                fontSize = 14.sp, 
+                color = Color(0xFF475569)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = week,
                 onValueChange = { week = it },
-                placeholder = { Text("Chọn tuần") },
-                leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+                placeholder = { Text("Chọn tuần làm việc") },
+                leadingIcon = { 
+                    Icon(
+                        imageVector = Icons.Default.DateRange, 
+                        contentDescription = null, 
+                        tint = Color(0xFF64748B),
+                        modifier = Modifier.size(20.dp)
+                    ) 
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF50D38A),
-                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedContainerColor = Color(0xFFF8FAF9),
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = Color(0xFF50D38A),
+                    focusedLeadingIconColor = Color(0xFF3DA36A),
+                    unfocusedLeadingIconColor = Color(0xFF64748B)
                 ),
+                singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             )

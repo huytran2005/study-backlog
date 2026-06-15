@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
@@ -34,14 +35,14 @@ class CreateWeeklyPlanScreenTest {
             }
         }
 
-        // Verify header
-        composeTestRule.onNodeWithText("Kế hoạch tuần").assertIsDisplayed()
+        // Verify header (use onAllNodesWithText since the default week input value is also "Kế hoạch tuần")
+        composeTestRule.onAllNodesWithText("Kế hoạch tuần")[0].assertIsDisplayed()
         composeTestRule.onNodeWithText("Lập kế hoạch cho những ngày sắp tới").assertIsDisplayed()
 
         // Verify inputs
         composeTestRule.onNodeWithText("Tiêu đề").assertExists()
         composeTestRule.onNodeWithText("Mô tả").assertExists()
-        composeTestRule.onNodeWithText("Tuần").assertExists()
+        composeTestRule.onNodeWithText("Thời gian thực hiện").assertExists()
         composeTestRule.onNodeWithText("Mục tiêu chính").assertExists()
         composeTestRule.onNodeWithText("Mức ưu tiên").assertExists()
     }

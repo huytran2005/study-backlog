@@ -22,7 +22,9 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.*
+import com.example.brainnote.feature.focus.FocusScreen
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,49 +55,51 @@ fun HomeScreen(
     // Scope immersive system bars to home screen destination and restore when leaving
     val view = LocalView.current
     val context = LocalContext.current
-    DisposableEffect(view) {
+    
+    // Hide system bars permanently for a fullscreen app experience
+    LaunchedEffect(Unit) {
         val activity = context as? Activity
         if (activity != null) {
             val windowInsetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
             windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         }
-        onDispose {
-            if (activity != null) {
-                val windowInsetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
-                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
-            }
-        }
     }
 
     Scaffold(
         bottomBar = {
-            CustomBottomNavigationBar(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
+            if (selectedTab != 1) {
+                CustomBottomNavigationBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it }
+                )
+            }
         },
         floatingActionButton = {
-            LargeFAB(
-                primaryColor = primaryColor,
-                onClick = onAddNoteClick
-            )
+            if (selectedTab != 1) {
+                LargeFAB(
+                    primaryColor = primaryColor,
+                    onClick = onAddNoteClick
+                )
+            }
         },
         floatingActionButtonPosition = FabPosition.Center,
         containerColor = Color(0xFFF5F4F8)
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    bottom = innerPadding.calculateBottomPadding()
-                )
+            modifier = Modifier.fillMaxSize()
         ) {
             when (selectedTab) {
-                0 -> NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
-                1 -> FinishedNotesScreen()
-                2 -> SearchNotesScreen()
-                3 -> SettingsScreen()
+                0 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                    NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
+                }
+                1 -> FocusScreen(onCloseClick = { selectedTab = 0 })
+                2 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                    SearchNotesScreen()
+                }
+                3 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                    SettingsScreen()
+                }
             }
         }
     }
@@ -154,9 +158,9 @@ fun LargeFAB(
     Box(
         modifier = Modifier
             .size(68.dp)
-            .offset(y = 34.dp) // Pushed deeper down into the notch
+            .offset(y = 34.dp) // Half-embedded inside the notch
             .shadow(10.dp, CircleShape, spotColor = primaryColor.copy(alpha = 0.4f))
-            .background(primaryColor, CircleShape) // Inner purple FAB (no white border)
+            .background(primaryColor, CircleShape)
             .clip(CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -181,18 +185,19 @@ fun CustomBottomNavigationBar(
     val barShape = NotchShape(circleRadiusDp = 42f, notchDepthDp = 32f)
 
     Surface(
-        color = Color.White,
+        color = Color.White.copy(alpha = 0.96f),
         shadowElevation = 8.dp,
         shape = barShape,
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .border(1.dp, Color(0xFF0F172A).copy(alpha = 0.08f), barShape)
+            .border(1.dp, Color.White.copy(alpha = 0.1f), barShape)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 10.dp, start = 8.dp, end = 8.dp),
+                .height(72.dp)
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -204,8 +209,8 @@ fun CustomBottomNavigationBar(
                 modifier = Modifier.weight(1f)
             )
             BottomTabItem(
-                icon = Icons.Outlined.CheckCircle,
-                label = "Finished",
+                icon = Icons.Outlined.Timer,
+                label = "Focus",
                 isSelected = selectedTab == 1,
                 onClick = { onTabSelected(1) },
                 modifier = Modifier.weight(1f)
@@ -241,7 +246,7 @@ fun RowScope.BottomTabItem(
     modifier: Modifier = Modifier
 ) {
     val activeColor = Color(0xFF7445C8)
-    val inactiveColor = Color(0xFF9E9E9E)
+    val inactiveColor = Color(0xFF8A8A95)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

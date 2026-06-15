@@ -47,12 +47,11 @@ class FocusScreenTest {
         // Click "Next" to skip focus and transition to break
         composeTestRule.onNodeWithText("Next").performClick()
 
-        // Verify Break Time Header
-        composeTestRule.onNodeWithText("Break Time").assertIsDisplayed()
+        // Verify Break Time Header (using onAllNodesWithText since the subtitle also contains "Break Time")
+        composeTestRule.onAllNodesWithText("Break Time")[0].assertIsDisplayed()
 
         // Verify Default Break Timer (5 minutes -> 05:00)
         composeTestRule.onNodeWithText("05:00").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Break Time").assertIsDisplayed()
 
 
 

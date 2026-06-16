@@ -50,6 +50,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.filled.Check
 import com.example.brainnote.feature.home.NoteRepository
 import com.example.brainnote.feature.home.NoteCardData
+import com.example.brainnote.feature.home.toggleChecklistItems
 
 enum class FocusState {
     FOCUSING,
@@ -132,35 +133,7 @@ fun FocusScreen(
                 FocusTaskChecklist(
                     task = activeTask,
                     onToggleCheck = { clickedGroup, clickedSubtask ->
-                        val updatedList = activeTask.tasks.map { (group, subtasks) ->
-                            if (clickedSubtask == null) {
-                                if (group == clickedGroup) {
-                                    val isGroupChecked = group.startsWith("[x] ")
-                                    val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
-                                    val newSubtasks = subtasks.map { sub ->
-                                        if (isGroupChecked) {
-                                            if (sub.startsWith("[x] ")) sub.substring(4) else sub
-                                        } else {
-                                            if (!sub.startsWith("[x] ")) "[x] $sub" else sub
-                                        }
-                                    }
-                                    Pair(newGroup, newSubtasks)
-                                } else {
-                                    Pair(group, subtasks)
-                                }
-                            } else {
-                                if (group == clickedGroup) {
-                                    val newSubtasks = subtasks.map { sub ->
-                                        if (sub == clickedSubtask) {
-                                            if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
-                                        } else sub
-                                    }
-                                    Pair(group, newSubtasks)
-                                } else {
-                                    Pair(group, subtasks)
-                                }
-                            }
-                        }
+                        val updatedList = toggleChecklistItems(activeTask.tasks, clickedGroup, clickedSubtask)
                         NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
                     }
                 )

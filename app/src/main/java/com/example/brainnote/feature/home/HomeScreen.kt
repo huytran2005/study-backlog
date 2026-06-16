@@ -510,35 +510,7 @@ fun TasksScreen(
                             color = Color(0xFF7C4DFF),
                             checklist = mockChecklist,
                             onToggleCheck = { clickedGroup, clickedSubtask ->
-                                mockChecklist = mockChecklist.map { (group, subtasks) ->
-                                    if (clickedSubtask == null) {
-                                        if (group == clickedGroup) {
-                                            val isGroupChecked = group.startsWith("[x] ")
-                                            val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
-                                            val newSubtasks = subtasks.map { sub ->
-                                                if (isGroupChecked) {
-                                                    if (sub.startsWith("[x] ")) sub.substring(4) else sub
-                                                } else {
-                                                    if (!sub.startsWith("[x] ")) "[x] $sub" else sub
-                                                }
-                                            }
-                                            Pair(newGroup, newSubtasks)
-                                        } else {
-                                            Pair(group, subtasks)
-                                        }
-                                    } else {
-                                        if (group == clickedGroup) {
-                                            val newSubtasks = subtasks.map { sub ->
-                                                if (sub == clickedSubtask) {
-                                                    if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
-                                                } else sub
-                                            }
-                                            Pair(group, newSubtasks)
-                                        } else {
-                                            Pair(group, subtasks)
-                                        }
-                                    }
-                                }
+                                mockChecklist = toggleChecklistItems(mockChecklist, clickedGroup, clickedSubtask)
                             },
                             onClick = {}
                         )
@@ -789,35 +761,7 @@ fun TaskCardRowItem(
         color = Color(0xFF7C4DFF),
         checklist = task.tasks,
         onToggleCheck = { clickedGroup, clickedSubtask ->
-            val updatedList = task.tasks.map { (group, subtasks) ->
-                if (clickedSubtask == null) {
-                    if (group == clickedGroup) {
-                        val isGroupChecked = group.startsWith("[x] ")
-                        val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
-                        val newSubtasks = subtasks.map { sub ->
-                            if (isGroupChecked) {
-                                if (sub.startsWith("[x] ")) sub.substring(4) else sub
-                            } else {
-                                if (!sub.startsWith("[x] ")) "[x] $sub" else sub
-                            }
-                        }
-                        Pair(newGroup, newSubtasks)
-                    } else {
-                        Pair(group, subtasks)
-                    }
-                } else {
-                    if (group == clickedGroup) {
-                        val newSubtasks = subtasks.map { sub ->
-                            if (sub == clickedSubtask) {
-                                if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
-                            } else sub
-                        }
-                        Pair(group, newSubtasks)
-                    } else {
-                        Pair(group, subtasks)
-                    }
-                }
-            }
+            val updatedList = toggleChecklistItems(task.tasks, clickedGroup, clickedSubtask)
             NoteRepository.updateNote(originalIndex, task.copy(tasks = updatedList))
         },
         onFocusClick = { onFocusClick(originalIndex) },

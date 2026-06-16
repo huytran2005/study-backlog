@@ -67,26 +67,38 @@ data class TaskGroupState(
 fun CreateTaskScreen(
     taskIndex: Int? = null,
     onBackClick: () -> Unit,
-    onSaveClick: (title: String, description: String, daysOfWeek: List<String>, checklist: List<Pair<String, List<String>>>) -> Unit
+    onSaveClick: (title: String, description: String, dueDate: String, priority: String, category: String, checklist: List<Pair<String, List<String>>>) -> Unit
 ) {
     val existingTask = remember(taskIndex) {
         taskIndex?.let { NoteRepository.notes.value.getOrNull(it) as? NoteCardData.NestedTask }
     }
 
-    val initialDays = remember(existingTask) {
-        existingTask?.let {
-            val text = it.footerText
-            if (text.contains("Days: ")) {
-                text.substringAfter("Days: ").split(", ").map { d -> d.trim() }.filter { d -> d.isNotEmpty() }
-            } else emptyList()
-        } ?: emptyList()
-    }
+    val initialPriority = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Priority: ")) {
+            text.substringAfter("Priority: ").substringBefore(" |")
+        } else PRIORITY_MEDIUM
+    } ?: PRIORITY_MEDIUM
+
+    val initialDueDate = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Due: ")) {
+            text.substringAfter("Due: ").substringBefore(" |")
+        } else ""
+    } ?: ""
+
+    val initialCategory = existingTask?.let {
+        val text = it.footerText
+        if (text.contains("Category: ")) {
+            text.substringAfter("Category: ")
+        } else "Study"
+    } ?: "Study"
 
     var title by rememberSaveable { mutableStateOf(existingTask?.title ?: "") }
     var description by rememberSaveable { mutableStateOf(existingTask?.description ?: "") }
-    val selectedDays = remember { 
-        mutableStateListOf<String>().apply { addAll(initialDays) }
-    }
+    var dueDate by rememberSaveable { mutableStateOf(initialDueDate) }
+    var priority by rememberSaveable { mutableStateOf(initialPriority) }
+    var selectedCategory by rememberSaveable { mutableStateOf(initialCategory) }
     
     // Nested Checklist Groups State - empty by default, populated if editing
     val taskGroups = rememberSaveable(saver = TaskGroupsSaver) { 
@@ -121,8 +133,8 @@ fun CreateTaskScreen(
         ) {
             // Header Section
             FormHeader(
-                title = "Nhiệm vụ hàng ngày",
-                subtitle = "Checklist các việc cần hoàn thành trong ngày",
+                title = "Nhiệm vụ",
+                subtitle = "Checklist các việc cần hoàn thành",
                 icon = Icons.AutoMirrored.Outlined.List,
                 primaryColor = Color(0xFFD53F8C),
                 backgroundColor = Color(0xFFFFF1F2)
@@ -148,16 +160,26 @@ fun CreateTaskScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Days of Week Selection
-            DaysOfWeekSelection(
-                selectedDays = selectedDays,
-                onDayToggle = { day ->
-                    if (selectedDays.contains(day)) {
-                        selectedDays.remove(day)
-                    } else {
-                        selectedDays.add(day)
-                    }
-                }
+            // Category Selection
+            CategorySelection(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Priority Selection
+            PrioritySelection(
+                priority = priority,
+                onPrioritySelected = { priority = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Due date
+            DueDateInput(
+                dueDate = dueDate,
+                onDueDateChange = { dueDate = it }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -213,7 +235,7 @@ fun CreateTaskScreen(
                         showError = true
                     } else {
                         val checklistData = taskGroups.map { Pair(it.name, it.subtasks) }
-                        onSaveClick(title, description, selectedDays.toList(), checklistData)
+                        onSaveClick(title, description, dueDate, priority, selectedCategory, checklistData)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD53F8C)),
@@ -295,44 +317,108 @@ private fun TaskDescriptionInput(
 }
 
 @Composable
-private fun DaysOfWeekSelection(
-    selectedDays: List<String>,
-    onDayToggle: (String) -> Unit
+private fun CategorySelection(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
 ) {
-    Text(text = "Lặp lại vào (Chọn nhiều ngày)", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+    Text(text = "Danh mục", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
     Spacer(modifier = Modifier.height(8.dp))
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        val days = listOf("Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật")
-        val shortDays = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-        
-        days.forEachIndexed { index, day ->
-            val isSelected = selectedDays.contains(day)
-            val bg = if (isSelected) Color(0xFFD53F8C) else Color(0xFFF1F5F9)
-            val tc = if (isSelected) Color.White else Color(0xFF4A4A5A)
+        val categories = listOf("Study", "Work", "Personal", "Health")
+        categories.forEach { category ->
+            val isSelected = selectedCategory == category
+            val bg = if (isSelected) Color(0xFFFFF1F2) else Color(0xFFF1F5F9)
+            val tc = if (isSelected) Color(0xFFD53F8C) else Color(0xFF79747E)
             val borderCol = if (isSelected) Color(0xFFD53F8C) else Color.Transparent
-            
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .aspectRatio(1f)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(bg)
-                    .border(1.dp, borderCol, CircleShape)
-                    .clickable { onDayToggle(day) },
+                    .border(1.dp, borderCol, RoundedCornerShape(12.dp))
+                    .clickable { onCategorySelected(category) }
+                    .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = shortDays[index],
+                    text = category,
                     color = tc,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    fontSize = 13.sp
                 )
             }
         }
     }
+}
+
+@Composable
+private fun PrioritySelection(
+    priority: String,
+    onPrioritySelected: (String) -> Unit
+) {
+    Text(text = "Mức ưu tiên", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E1E1E))
+    Spacer(modifier = Modifier.height(8.dp))
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val priorities = listOf(
+            Triple(PRIORITY_LOW, Color(0xFFE6F7ED), Color(0xFF3DA36A)),
+            Triple(PRIORITY_MEDIUM, Color(0xFFFFF7ED), Color(0xFFEA580C)),
+            Triple(PRIORITY_HIGH, Color(0xFFFFF1F2), Color(0xFFE11D48))
+        )
+        priorities.forEach { item ->
+            val isSelected = priority == item.first
+            val bg = if (isSelected) item.second else Color(0xFFF1F5F9)
+            val tc = if (isSelected) item.third else Color(0xFF79747E)
+            val borderCol = if (isSelected) item.third else Color.Transparent
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(bg)
+                    .border(1.dp, borderCol, RoundedCornerShape(12.dp))
+                    .clickable { onPrioritySelected(item.first) }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = item.first,
+                    color = tc,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DueDateInput(
+    dueDate: String,
+    onDueDateChange: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val formattedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+            onDueDateChange(formattedDate)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    FormDateInput(
+        label = "Hạn hoàn thành",
+        dateValue = dueDate,
+        onClick = { datePickerDialog.show() }
+    )
 }
 
 @Composable

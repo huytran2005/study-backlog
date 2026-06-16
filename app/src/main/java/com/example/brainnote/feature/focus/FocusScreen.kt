@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
@@ -51,48 +52,21 @@ enum class FocusState {
 
 @Composable
 fun FocusScreen(
-    onCloseClick: () -> Unit = {}
+    onCloseClick: () -> Unit = {},
+    viewModel: FocusViewModel = viewModel()
 ) {
-    var focusState by remember { mutableStateOf(FocusState.FOCUSING) }
-    var isRunning by remember { mutableStateOf(false) }
-    
-    // User configurable durations (in minutes)
-    var focusDurationMinutes by remember { mutableStateOf(25) }
-    var breakDurationMinutes by remember { mutableStateOf(5) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    val focusState = uiState.focusState
+    val isRunning = uiState.isRunning
+    val timeRemaining = uiState.timeRemaining
+    val showSettingsDialog = uiState.showSettingsDialog
+    val focusDurationMinutes = uiState.focusDurationMinutes
+    val breakDurationMinutes = uiState.breakDurationMinutes
     
     val focusDuration = focusDurationMinutes * 60
     val breakDuration = breakDurationMinutes * 60
     
-    var timeRemaining by remember { mutableStateOf(focusDuration) }
-    var showSettingsDialog by remember { mutableStateOf(false) }
-    
-    // Keep timeRemaining in sync when configuration updates while not running
-    LaunchedEffect(focusDurationMinutes, breakDurationMinutes, focusState) {
-        if (!isRunning) {
-            timeRemaining = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
-        }
-    }
-    
-    // Coroutine effect for countdown timer
-    LaunchedEffect(isRunning, focusState, focusDuration, breakDuration) {
-        if (isRunning) {
-            while (timeRemaining > 0) {
-                delay(1000L)
-                timeRemaining--
-            }
-            if (timeRemaining == 0) {
-                isRunning = false
-                if (focusState == FocusState.FOCUSING) {
-                    focusState = FocusState.BREAKING
-                    timeRemaining = breakDuration
-                } else {
-                    focusState = FocusState.FOCUSING
-                    timeRemaining = focusDuration
-                }
-            }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -123,7 +97,7 @@ fun FocusScreen(
             FocusHeader(
                 title = if (focusState == FocusState.FOCUSING) "Focus Mode" else "Break Time",
                 onCloseClick = onCloseClick,
-                onSettingsClick = { showSettingsDialog = true }
+                onSettingsClick = { viewModel.setShowSettingsDialog(true) }
             )
 
             // Center Countdown hero element
@@ -155,21 +129,9 @@ fun FocusScreen(
                 ControlActionSection(
                     focusState = focusState,
                     isRunning = isRunning,
-                    onPlayPauseToggle = { isRunning = !isRunning },
-                    onSkipClick = {
-                        isRunning = false
-                        if (focusState == FocusState.FOCUSING) {
-                            focusState = FocusState.BREAKING
-                            timeRemaining = breakDuration
-                        } else {
-                            focusState = FocusState.FOCUSING
-                            timeRemaining = focusDuration
-                        }
-                    },
-                    onResetClick = {
-                        isRunning = false
-                        timeRemaining = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
-                    }
+                    onPlayPauseToggle = { viewModel.togglePlayPause() },
+                    onSkipClick = { viewModel.skipSession() },
+                    onResetClick = { viewModel.resetTimer() }
                 )
 
                 Spacer(modifier = Modifier.height(48.dp).navigationBarsPadding())
@@ -182,13 +144,9 @@ fun FocusScreen(
         FocusSettingsDialog(
             currentFocusMinutes = focusDurationMinutes,
             currentBreakMinutes = breakDurationMinutes,
-            onDismiss = { showSettingsDialog = false },
+            onDismiss = { viewModel.setShowSettingsDialog(false) },
             onSave = { newFocus, newBreak ->
-                focusDurationMinutes = newFocus
-                breakDurationMinutes = newBreak
-                timeRemaining = if (focusState == FocusState.FOCUSING) newFocus * 60 else newBreak * 60
-                isRunning = false
-                showSettingsDialog = false
+                viewModel.updateSettings(newFocus, newBreak)
             }
         )
     }

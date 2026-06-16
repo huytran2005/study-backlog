@@ -225,9 +225,6 @@ fun NoteDashboardScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F4F8)) // Figma canvas color
     ) {
-        val quickNotes = notesList.mapIndexed { index, item -> Pair(index, item) }
-            .filter { it.second is NoteCardData.Idea || it.second is NoteCardData.ImageIdea }
-
         // Scrollable content
         Column(
             modifier = Modifier
@@ -251,26 +248,26 @@ fun NoteDashboardScreen(
                     .padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Left Column (Even indexes of filtered list)
+                // Left Column (Even indexes)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    quickNotes.forEachIndexed { index, (originalIndex, item) ->
+                    notesList.forEachIndexed { index, item ->
                         if (index % 2 == 0) {
-                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(originalIndex) })
+                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(index) })
                         }
                     }
                 }
 
-                // Right Column (Odd indexes of filtered list)
+                // Right Column (Odd indexes)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    quickNotes.forEachIndexed { index, (originalIndex, item) ->
+                    notesList.forEachIndexed { index, item ->
                         if (index % 2 == 1) {
-                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(originalIndex) })
+                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(index) })
                         }
                     }
                 }

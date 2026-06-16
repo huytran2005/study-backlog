@@ -44,12 +44,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.filled.Check
-import com.example.brainnote.feature.home.NoteRepository
-import com.example.brainnote.feature.home.NoteCardData
 
 enum class FocusState {
     FOCUSING,
@@ -58,7 +52,6 @@ enum class FocusState {
 
 @Composable
 fun FocusScreen(
-    activeTaskIndex: Int? = null,
     onCloseClick: () -> Unit = {},
     viewModel: FocusViewModel = viewModel()
 ) {
@@ -122,47 +115,6 @@ fun FocusScreen(
                     timeText = formatTime(timeRemaining),
                     state = focusState,
                     isRunning = isRunning
-                )
-            }
-
-            // Checklist section (If there is an active task)
-            val notesList by NoteRepository.notes.collectAsState()
-            val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
-            if (activeTask != null) {
-                FocusTaskChecklist(
-                    task = activeTask,
-                    onToggleCheck = { clickedGroup, clickedSubtask ->
-                        val updatedList = activeTask.tasks.map { (group, subtasks) ->
-                            if (clickedSubtask == null) {
-                                if (group == clickedGroup) {
-                                    val isGroupChecked = group.startsWith("[x] ")
-                                    val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
-                                    val newSubtasks = subtasks.map { sub ->
-                                        if (isGroupChecked) {
-                                            if (sub.startsWith("[x] ")) sub.substring(4) else sub
-                                        } else {
-                                            if (!sub.startsWith("[x] ")) "[x] $sub" else sub
-                                        }
-                                    }
-                                    Pair(newGroup, newSubtasks)
-                                } else {
-                                    Pair(group, subtasks)
-                                }
-                            } else {
-                                if (group == clickedGroup) {
-                                    val newSubtasks = subtasks.map { sub ->
-                                        if (sub == clickedSubtask) {
-                                            if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
-                                        } else sub
-                                    }
-                                    Pair(group, newSubtasks)
-                                } else {
-                                    Pair(group, subtasks)
-                                }
-                            }
-                        }
-                        NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
-                    }
                 )
             }
 
@@ -768,128 +720,4 @@ private fun formatTime(seconds: Int): String {
     val mins = seconds / 60
     val secs = seconds % 60
     return String.format("%02d:%02d", mins, secs)
-}
-
-@Composable
-fun FocusTaskChecklist(
-    task: NoteCardData.NestedTask,
-    onToggleCheck: (String, String?) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp)
-            .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color.White.copy(alpha = 0.05f)),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-        shape = RoundedCornerShape(18.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Task Title & Header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color(0xFF7C4DFF), CircleShape)
-                )
-                Text(
-                    text = task.title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Subtasks list
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 160.dp) // Limit height and scroll if long
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                task.tasks.forEach { (groupName, subtasks) ->
-                    val isGroupChecked = groupName.startsWith("[x] ")
-                    val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-                    ) {
-                        FocusTaskCheckbox(
-                            checked = isGroupChecked,
-                            onCheckedChange = { onToggleCheck(groupName, null) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = cleanGroupName,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isGroupChecked) Color.Gray else Color.White
-                        )
-                    }
-
-                    subtasks.forEach { subtask ->
-                        val isSubChecked = subtask.startsWith("[x] ")
-                        val cleanSubName = if (isSubChecked) subtask.substring(4) else subtask
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, top = 1.dp, bottom = 1.dp)
-                        ) {
-                            FocusTaskCheckbox(
-                                checked = isSubChecked,
-                                onCheckedChange = { onToggleCheck(groupName, subtask) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = cleanSubName,
-                                fontSize = 13.sp,
-                                color = if (isSubChecked) Color.Gray else Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FocusTaskCheckbox(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val borderColor = if (checked) Color(0xFF7C4DFF) else Color.White.copy(alpha = 0.4f)
-    val backgroundColor = if (checked) Color(0xFF7C4DFF) else Color.Transparent
-
-    Box(
-        modifier = modifier
-            .size(16.dp)
-            .border(1.5.dp, borderColor, RoundedCornerShape(4.dp))
-            .background(backgroundColor, RoundedCornerShape(4.dp))
-            .clickable { onCheckedChange(!checked) },
-        contentAlignment = Alignment.Center
-    ) {
-        if (checked) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(10.dp)
-            )
-        }
-    }
 }

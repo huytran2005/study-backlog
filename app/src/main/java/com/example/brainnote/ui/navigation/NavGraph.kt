@@ -179,12 +179,12 @@ fun StudyBacklogApp() {
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onSaveClick = { title, description, dueDate, priority, category, checklist ->
+                onSaveClick = { title, description, daysOfWeek, checklist ->
                     val newTask = NoteCardData.NestedTask(
                         title = title,
                         description = description,
                         tasks = checklist,
-                        footerText = "Priority: $priority | Due: $dueDate | Category: $category"
+                        footerText = "Days: ${daysOfWeek.joinToString(", ")}"
                     )
                     if (taskIndex != null) {
                         NoteRepository.updateNote(taskIndex, newTask)

@@ -57,6 +57,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
+private const val CATEGORY_PREFIX = "Category: "
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -331,6 +333,7 @@ fun FinishedNotesScreen() {
 }
 
 @Composable
+@Composable
 fun TasksScreen(
     onTaskCardClick: (Int) -> Unit = {},
     onFocusClick: (Int) -> Unit = {}
@@ -363,90 +366,13 @@ fun TasksScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Top Section: Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            Column {
-                Text(
-                    text = "My Tasks",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E1E1E)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Stay organized and get things done.",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
+        TasksHeader()
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = "Search",
-                    tint = Color(0xFF7C4DFF),
-                    modifier = Modifier.size(24.dp)
-                )
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Notifications",
-                    tint = Color(0xFF7C4DFF),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
-        // Category Tabs
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val dynamicCategories = taskItems.map { item ->
-                val text = item.second.footerText
-                if (text.contains("Category: ")) {
-                    text.substringAfter("Category: ").trim()
-                } else "Study"
-            }.distinct().sorted()
-
-            val tabList = listOf(Triple("All Tasks", Icons.Outlined.CheckCircle, "All")) +
-                    dynamicCategories.map { cat -> Triple(cat, Icons.Outlined.Folder, cat) } +
-                    listOf(Triple("Completed", Icons.Outlined.CheckCircle, "Completed"))
-
-            tabList.forEach { (label, icon, categoryKey) ->
-                val isSelected = selectedCategory == categoryKey
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) Color(0xFF7C4DFF) else Color(0xFFF1EFF7))
-                        .clickable { selectedCategory = categoryKey }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = if (isSelected) Color.White else Color(0xFF7C4DFF),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = label,
-                        fontSize = 13.sp,
-                        color = if (isSelected) Color.White else Color(0xFF4A4A5A),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
+        CategoryTabs(
+            taskItems = taskItems,
+            selectedCategory = selectedCategory,
+            onCategorySelected = { selectedCategory = it }
+        )
 
         // Statistics Card
         StatisticsSection(
@@ -483,97 +409,212 @@ fun TasksScreen(
                 )
             }
 
-            // Task List (2-column layout)
             if (taskItems.isEmpty()) {
-                // Mock elements matching image side-by-side
-                var mockChecklist by remember { mutableStateOf(listOf(
-                    Pair("Preparation", listOf("Verify UI assets", "Design custom SVG graphics")),
-                    Pair("Development", listOf("Setup Jetpack Compose", "Implement Canvas drawings"))
-                )) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        val totalSubtasks = mockChecklist.flatMap { it.second }.size
-                        val checkedSubtasks = mockChecklist.flatMap { it.second }.filter { it.startsWith("[x] ") }.size
-                        val progress = if (totalSubtasks > 0) checkedSubtasks.toFloat() / totalSubtasks.toFloat() else 0.5f
-
-                        TaskCardItem(
-                            title = "Weekly Sub-tasks",
-                            description = "This is a sample task description.",
-                            dueDate = "May 20, 2024",
-                            category = "Design",
-                            progress = progress,
-                            priority = "Medium",
-                            color = Color(0xFF7C4DFF),
-                            checklist = mockChecklist,
-                            onToggleCheck = { clickedGroup, clickedSubtask ->
-                                mockChecklist = toggleChecklistItems(mockChecklist, clickedGroup, clickedSubtask)
-                            },
-                            onClick = {}
-                        )
-                    }
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        TaskCardItem(
-                            title = "Project Presentation",
-                            description = "Prepare slides for the client meeting.",
-                            dueDate = "May 22, 2024",
-                            category = "Work",
-                            progress = 0.30f,
-                            priority = "High",
-                            color = Color(0xFF3B82F6),
-                            onClick = {}
-                        )
-                    }
-                }
+                MockTasksView()
             } else {
-                val filteredTasks = if (selectedCategory == "All") {
-                    taskItems
-                } else if (selectedCategory == "Completed") {
-                    taskItems.filter { it.second.footerText.contains("Finished") || it.second.footerText.contains("Completed") }
-                } else {
-                    taskItems.filter { item ->
-                        val text = item.second.footerText
-                        val cat = if (text.contains("Category: ")) text.substringAfter("Category: ").trim() else "Study"
-                        cat == selectedCategory
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Left Column (Even indexes)
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        filteredTasks.forEachIndexed { index, (originalIndex, task) ->
-                            if (index % 2 == 0) {
-                                TaskCardRowItem(originalIndex, task, onTaskCardClick, onFocusClick)
-                            }
-                        }
-                    }
-
-                    // Right Column (Odd indexes)
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        filteredTasks.forEachIndexed { index, (originalIndex, task) ->
-                            if (index % 2 == 1) {
-                                TaskCardRowItem(originalIndex, task, onTaskCardClick, onFocusClick)
-                            }
-                        }
-                    }
-                }
+                FilteredTasksView(
+                    taskItems = taskItems,
+                    selectedCategory = selectedCategory,
+                    onTaskCardClick = onTaskCardClick,
+                    onFocusClick = onFocusClick
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
+    }
+}
+
+@Composable
+fun TasksHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column {
+            Text(
+                text = "My Tasks",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E1E1E)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Stay organized and get things done.",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search",
+                tint = Color(0xFF7C4DFF),
+                modifier = Modifier.size(24.dp)
+            )
+            Icon(
+                imageVector = Icons.Outlined.Notifications,
+                contentDescription = "Notifications",
+                tint = Color(0xFF7C4DFF),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryTabs(
+    taskItems: List<Pair<Int, NoteCardData.NestedTask>>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        val dynamicCategories = taskItems.map { item ->
+            val text = item.second.footerText
+            if (text.contains(CATEGORY_PREFIX)) {
+                text.substringAfter(CATEGORY_PREFIX).trim()
+            } else "Study"
+        }.distinct().sorted()
+
+        val tabList = listOf(Triple("All Tasks", Icons.Outlined.CheckCircle, "All")) +
+                dynamicCategories.map { cat -> Triple(cat, Icons.Outlined.Folder, cat) } +
+                listOf(Triple("Completed", Icons.Outlined.CheckCircle, "Completed"))
+
+        tabList.forEach { (label, icon, categoryKey) ->
+            val isSelected = selectedCategory == categoryKey
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(if (isSelected) Color(0xFF7C4DFF) else Color(0xFFF1EFF7))
+                    .clickable { onCategorySelected(categoryKey) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isSelected) Color.White else Color(0xFF7C4DFF),
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = label,
+                    fontSize = 13.sp,
+                    color = if (isSelected) Color.White else Color(0xFF4A4A5A),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MockTasksView() {
+    var mockChecklist by remember { mutableStateOf(listOf(
+        Pair("Preparation", listOf("Verify UI assets", "Design custom SVG graphics")),
+        Pair("Development", listOf("Setup Jetpack Compose", "Implement Canvas drawings"))
+    )) }
+
+    val totalSubtasks = mockChecklist.flatMap { it.second }.size
+    val checkedSubtasks = mockChecklist.flatMap { it.second }.filter { it.startsWith("[x] ") }.size
+    val progress = if (totalSubtasks > 0) checkedSubtasks.toFloat() / totalSubtasks.toFloat() else 0.5f
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            TaskCardItem(
+                state = TaskCardDisplayState(
+                    title = "Weekly Sub-tasks",
+                    description = "This is a sample task description.",
+                    dueDate = "May 20, 2024",
+                    category = "Design",
+                    progress = progress,
+                    priority = "Medium",
+                    color = Color(0xFF7C4DFF),
+                    checklist = mockChecklist
+                ),
+                onToggleCheck = { clickedGroup, clickedSubtask ->
+                    mockChecklist = toggleChecklistItems(mockChecklist, clickedGroup, clickedSubtask)
+                },
+                onClick = {}
+            )
+        }
+
+        Box(modifier = Modifier.weight(1f)) {
+            TaskCardItem(
+                state = TaskCardDisplayState(
+                    title = "Project Presentation",
+                    description = "Prepare slides for the client meeting.",
+                    dueDate = "May 22, 2024",
+                    category = "Work",
+                    progress = 0.30f,
+                    priority = "High",
+                    color = Color(0xFF3B82F6)
+                ),
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Composable
+fun FilteredTasksView(
+    taskItems: List<Pair<Int, NoteCardData.NestedTask>>,
+    selectedCategory: String,
+    onTaskCardClick: (Int) -> Unit,
+    onFocusClick: (Int) -> Unit
+) {
+    val filteredTasks = if (selectedCategory == "All") {
+        taskItems
+    } else if (selectedCategory == "Completed") {
+        taskItems.filter { it.second.footerText.contains("Finished") || it.second.footerText.contains("Completed") }
+    } else {
+        taskItems.filter { item ->
+            val text = item.second.footerText
+            val cat = if (text.contains(CATEGORY_PREFIX)) text.substringAfter(CATEGORY_PREFIX).trim() else "Study"
+            cat == selectedCategory
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Left Column (Even indexes)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            filteredTasks.forEachIndexed { index, (originalIndex, task) ->
+                if (index % 2 == 0) {
+                    TaskCardRowItem(originalIndex, task, onTaskCardClick, onFocusClick)
+                }
+            }
+        }
+
+        // Right Column (Odd indexes)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            filteredTasks.forEachIndexed { index, (originalIndex, task) ->
+                if (index % 2 == 1) {
+                    TaskCardRowItem(originalIndex, task, onTaskCardClick, onFocusClick)
+                }
+            }
+        }
     }
 }
 
@@ -743,8 +784,8 @@ fun TaskCardRowItem(
         footer.substringAfter("Days: ").trim()
     } else "No Date"
 
-    val category = if (footer.contains("Category: ")) {
-        footer.substringAfter("Category: ").trim()
+    val category = if (footer.contains(CATEGORY_PREFIX)) {
+        footer.substringAfter(CATEGORY_PREFIX).trim()
     } else ""
 
     val totalSubtasks = task.tasks.flatMap { it.second }.size
@@ -752,14 +793,16 @@ fun TaskCardRowItem(
     val progress = if (totalSubtasks > 0) checkedSubtasks.toFloat() / totalSubtasks.toFloat() else 0.5f
 
     TaskCardItem(
-        title = task.title,
-        description = task.description,
-        dueDate = dueDate,
-        category = category,
-        progress = progress,
-        priority = priority,
-        color = Color(0xFF7C4DFF),
-        checklist = task.tasks,
+        state = TaskCardDisplayState(
+            title = task.title,
+            description = task.description,
+            dueDate = dueDate,
+            category = category,
+            progress = progress,
+            priority = priority,
+            color = Color(0xFF7C4DFF),
+            checklist = task.tasks
+        ),
         onToggleCheck = { clickedGroup, clickedSubtask ->
             val updatedList = toggleChecklistItems(task.tasks, clickedGroup, clickedSubtask)
             NoteRepository.updateNote(originalIndex, task.copy(tasks = updatedList))
@@ -797,23 +840,27 @@ fun TaskCheckbox(
     }
 }
 
+data class TaskCardDisplayState(
+    val title: String,
+    val description: String,
+    val dueDate: String,
+    val category: String,
+    val progress: Float,
+    val priority: String,
+    val color: Color,
+    val checklist: List<Pair<String, List<String>>> = emptyList()
+)
+
 @Composable
 fun TaskCardItem(
-    title: String,
-    description: String,
-    dueDate: String,
-    category: String,
-    progress: Float,
-    priority: String,
-    color: Color,
-    checklist: List<Pair<String, List<String>>> = emptyList(),
+    state: TaskCardDisplayState,
     onToggleCheck: (String, String?) -> Unit = { _, _ -> },
     onFocusClick: () -> Unit = {},
     onClick: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    val priorityColor = when (priority.lowercase()) {
+    val priorityColor = when (state.priority.lowercase()) {
         "cao", "high" -> Color(0xFFEF4444)
         "trung bình", "medium" -> Color(0xFF7C4DFF)
         else -> Color(0xFF10B981)
@@ -836,11 +883,11 @@ fun TaskCardItem(
                 Box(
                     modifier = Modifier
                         .size(8.dp)
-                        .background(color, CircleShape)
+                        .background(state.color, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = title,
+                    text = state.title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1E1E1E),
@@ -884,17 +931,17 @@ fun TaskCardItem(
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = priority,
+                    text = state.priority,
                     color = priorityColor,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            if (description.isNotEmpty()) {
+            if (state.description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = description,
+                    text = state.description,
                     fontSize = 13.sp,
                     color = Color.Gray,
                     modifier = Modifier.clickable(onClick = onClick),
@@ -903,12 +950,12 @@ fun TaskCardItem(
                 )
             }
 
-            if (checklist.isNotEmpty() && isExpanded) {
+            if (state.checklist.isNotEmpty() && isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = Color(0xFFF0F0F0))
                 Spacer(modifier = Modifier.height(8.dp))
 
-                checklist.forEach { (groupName, subtasks) ->
+                state.checklist.forEach { (groupName, subtasks) ->
                     val isGroupChecked = groupName.startsWith("[x] ")
                     val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
 
@@ -979,7 +1026,7 @@ fun TaskCardItem(
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = dueDate,
+                            text = state.dueDate,
                             fontSize = 11.sp,
                             color = Color.Gray,
                             maxLines = 1,
@@ -987,7 +1034,7 @@ fun TaskCardItem(
                         )
                     }
 
-                    if (category.isNotEmpty()) {
+                    if (state.category.isNotEmpty()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -999,7 +1046,7 @@ fun TaskCardItem(
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
-                                text = category,
+                                text = state.category,
                                 fontSize = 11.sp,
                                 color = Color.Gray,
                                 maxLines = 1,
@@ -1024,13 +1071,13 @@ fun TaskCardItem(
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .fillMaxWidth(progress)
+                                .fillMaxWidth(state.progress)
                                 .background(priorityColor)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${(progress * 100).toInt()}%",
+                        text = "${(state.progress * 100).toInt()}%",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Gray

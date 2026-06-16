@@ -88,44 +88,56 @@ fun NoteCardData.toJson(): JSONObject {
     return obj
 }
 
+private fun parseIdea(obj: JSONObject): NoteCardData.Idea {
+    return NoteCardData.Idea(
+        title = obj.getString("title"),
+        description = obj.getString("description"),
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseImageIdea(obj: JSONObject): NoteCardData.ImageIdea {
+    return NoteCardData.ImageIdea(
+        title = obj.getString("title"),
+        description = obj.getString("description"),
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseShoppingList(obj: JSONObject): NoteCardData.ShoppingList {
+    val arr = obj.getJSONArray("items")
+    val items = List(arr.length()) { arr.getString(it) }
+    return NoteCardData.ShoppingList(
+        title = obj.getString("title"),
+        items = items,
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseNestedTask(obj: JSONObject): NoteCardData.NestedTask {
+    val arr = obj.getJSONArray("tasks")
+    val tasks = List(arr.length()) { i ->
+        val taskObj = arr.getJSONObject(i)
+        val name = taskObj.getString("name")
+        val subtaskArr = taskObj.getJSONArray("subtasks")
+        val subtasks = List(subtaskArr.length()) { subtaskArr.getString(it) }
+        Pair(name, subtasks)
+    }
+    return NoteCardData.NestedTask(
+        title = obj.getString("title"),
+        description = obj.optString("description", ""),
+        tasks = tasks,
+        footerText = obj.getString("footerText")
+    )
+}
+
 fun jsonToNoteCardData(obj: JSONObject): NoteCardData? {
     return try {
         when (obj.getString("type")) {
-            "Idea" -> NoteCardData.Idea(
-                title = obj.getString("title"),
-                description = obj.getString("description"),
-                footerText = obj.getString("footerText")
-            )
-            "ImageIdea" -> NoteCardData.ImageIdea(
-                title = obj.getString("title"),
-                description = obj.getString("description"),
-                footerText = obj.getString("footerText")
-            )
-            "ShoppingList" -> {
-                val arr = obj.getJSONArray("items")
-                val items = List(arr.length()) { arr.getString(it) }
-                NoteCardData.ShoppingList(
-                    title = obj.getString("title"),
-                    items = items,
-                    footerText = obj.getString("footerText")
-                )
-            }
-            "NestedTask" -> {
-                val arr = obj.getJSONArray("tasks")
-                val tasks = List(arr.length()) { i ->
-                    val taskObj = arr.getJSONObject(i)
-                    val name = taskObj.getString("name")
-                    val subtaskArr = taskObj.getJSONArray("subtasks")
-                    val subtasks = List(subtaskArr.length()) { subtaskArr.getString(it) }
-                    Pair(name, subtasks)
-                }
-                NoteCardData.NestedTask(
-                    title = obj.getString("title"),
-                    description = obj.optString("description", ""),
-                    tasks = tasks,
-                    footerText = obj.getString("footerText")
-                )
-            }
+            "Idea" -> parseIdea(obj)
+            "ImageIdea" -> parseImageIdea(obj)
+            "ShoppingList" -> parseShoppingList(obj)
+            "NestedTask" -> parseNestedTask(obj)
             else -> null
         }
     } catch (e: Exception) {

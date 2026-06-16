@@ -57,6 +57,33 @@ enum class FocusState {
     BREAKING
 }
 
+fun getFocusBackgroundBrush(focusState: FocusState): Brush {
+    return if (focusState == FocusState.FOCUSING) {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFF0B0B1F), Color(0xFF09091C))
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFF27D17F), Color(0xFF06684A))
+        )
+    }
+}
+
+@Composable
+fun ActiveTaskChecklist(
+    activeTaskIndex: Int?,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val notesList by NoteRepository.notes.collectAsState()
+    val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
+    if (activeTask != null) {
+        FocusTaskChecklist(
+            task = activeTask,
+            onToggleCheck = onToggleCheck
+        )
+    }
+}
+
 @Composable
 fun FocusScreen(
     activeTaskIndex: Int? = null,
@@ -78,17 +105,7 @@ fun FocusScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                if (focusState == FocusState.FOCUSING) {
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF0B0B1F), Color(0xFF09091C))
-                    )
-                } else {
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF27D17F), Color(0xFF06684A))
-                    )
-                }
-            )
+            .background(getFocusBackgroundBrush(focusState))
     ) {
         // Floating particles (reduced by 60%, total 6 particles, with different opacities and slow animation)
         AnimatedFloatingParticles(focusState = focusState)
@@ -127,17 +144,17 @@ fun FocusScreen(
             }
 
             // Checklist section (If there is an active task)
-            val notesList by NoteRepository.notes.collectAsState()
-            val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
-            if (activeTask != null) {
-                FocusTaskChecklist(
-                    task = activeTask,
-                    onToggleCheck = { clickedGroup, clickedSubtask ->
+            ActiveTaskChecklist(
+                activeTaskIndex = activeTaskIndex,
+                onToggleCheck = { clickedGroup, clickedSubtask ->
+                    val notesList = NoteRepository.notes.value
+                    val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
+                    if (activeTask != null) {
                         val updatedList = toggleChecklistItems(activeTask.tasks, clickedGroup, clickedSubtask)
                         NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
                     }
-                )
-            }
+                }
+            )
 
             // Bottom controls
             Column(

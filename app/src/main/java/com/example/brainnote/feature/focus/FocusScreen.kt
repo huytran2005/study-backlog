@@ -84,6 +84,25 @@ fun ActiveTaskChecklist(
     }
 }
 
+private fun calculateTimerProgress(focusState: FocusState, focusDuration: Int, breakDuration: Int, timeRemaining: Int): Float {
+    val maxDuration = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
+    return if (maxDuration > 0) timeRemaining.toFloat() / maxDuration.toFloat() else 0f
+}
+
+private fun handleToggleCheck(
+    activeTaskIndex: Int?,
+    clickedGroup: String,
+    clickedSubtask: String?
+) {
+    if (activeTaskIndex == null) return
+    val notesList = NoteRepository.notes.value
+    val activeTask = notesList.getOrNull(activeTaskIndex) as? NoteCardData.NestedTask
+    if (activeTask != null) {
+        val updatedList = toggleChecklistItems(activeTask.tasks, clickedGroup, clickedSubtask)
+        NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
+    }
+}
+
 @Composable
 fun FocusScreen(
     activeTaskIndex: Int? = null,
@@ -132,8 +151,7 @@ fun FocusScreen(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                val maxDuration = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
-                val progress = if (maxDuration > 0) timeRemaining.toFloat() / maxDuration.toFloat() else 0f
+                val progress = calculateTimerProgress(focusState, focusDuration, breakDuration, timeRemaining)
                 
                 TimerRing(
                     progress = progress,
@@ -147,12 +165,7 @@ fun FocusScreen(
             ActiveTaskChecklist(
                 activeTaskIndex = activeTaskIndex,
                 onToggleCheck = { clickedGroup, clickedSubtask ->
-                    val notesList = NoteRepository.notes.value
-                    val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
-                    if (activeTask != null) {
-                        val updatedList = toggleChecklistItems(activeTask.tasks, clickedGroup, clickedSubtask)
-                        NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
-                    }
+                    handleToggleCheck(activeTaskIndex, clickedGroup, clickedSubtask)
                 }
             )
 
@@ -760,6 +773,62 @@ private fun formatTime(seconds: Int): String {
     return String.format("%02d:%02d", mins, secs)
 }
 
+private fun parseTaskStatusAndName(name: String): Pair<Boolean, String> {
+    val isChecked = name.startsWith("[x] ")
+    val cleanName = if (isChecked) name.substring(4) else name
+    return Pair(isChecked, cleanName)
+}
+
+@Composable
+private fun ChecklistGroupRow(
+    groupName: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val (isGroupChecked, cleanGroupName) = parseTaskStatusAndName(groupName)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+    ) {
+        FocusTaskCheckbox(
+            checked = isGroupChecked,
+            onCheckedChange = { onToggleCheck(groupName, null) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanGroupName,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isGroupChecked) Color.Gray else Color.White
+        )
+    }
+}
+
+@Composable
+private fun ChecklistSubtaskRow(
+    groupName: String,
+    subtask: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val (isSubChecked, cleanSubName) = parseTaskStatusAndName(subtask)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, top = 1.dp, bottom = 1.dp)
+    ) {
+        FocusTaskCheckbox(
+            checked = isSubChecked,
+            onCheckedChange = { onToggleCheck(groupName, subtask) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanSubName,
+            fontSize = 13.sp,
+            color = if (isSubChecked) Color.Gray else Color.White.copy(alpha = 0.8f)
+        )
+    }
+}
+
 @Composable
 fun FocusTaskChecklist(
     task: NoteCardData.NestedTask,
@@ -808,47 +877,9 @@ fun FocusTaskChecklist(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 task.tasks.forEach { (groupName, subtasks) ->
-                    val isGroupChecked = groupName.startsWith("[x] ")
-                    val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-                    ) {
-                        FocusTaskCheckbox(
-                            checked = isGroupChecked,
-                            onCheckedChange = { onToggleCheck(groupName, null) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = cleanGroupName,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isGroupChecked) Color.Gray else Color.White
-                        )
-                    }
-
+                    ChecklistGroupRow(groupName, onToggleCheck)
                     subtasks.forEach { subtask ->
-                        val isSubChecked = subtask.startsWith("[x] ")
-                        val cleanSubName = if (isSubChecked) subtask.substring(4) else subtask
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, top = 1.dp, bottom = 1.dp)
-                        ) {
-                            FocusTaskCheckbox(
-                                checked = isSubChecked,
-                                onCheckedChange = { onToggleCheck(groupName, subtask) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = cleanSubName,
-                                fontSize = 13.sp,
-                                color = if (isSubChecked) Color.Gray else Color.White.copy(alpha = 0.8f)
-                            )
-                        }
+                        ChecklistSubtaskRow(groupName, subtask, onToggleCheck)
                     }
                 }
             }

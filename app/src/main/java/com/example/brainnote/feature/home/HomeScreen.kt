@@ -333,7 +333,6 @@ fun FinishedNotesScreen() {
 }
 
 @Composable
-@Composable
 fun TasksScreen(
     onTaskCardClick: (Int) -> Unit = {},
     onFocusClick: (Int) -> Unit = {}
@@ -852,6 +851,77 @@ data class TaskCardDisplayState(
 )
 
 @Composable
+private fun TaskCardChecklistGroupRow(
+    groupName: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val isGroupChecked = groupName.startsWith("[x] ")
+    val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    ) {
+        TaskCheckbox(
+            checked = isGroupChecked,
+            onCheckedChange = { onToggleCheck(groupName, null) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanGroupName,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isGroupChecked) Color.Gray else Color(0xFF1E1E1E),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun TaskCardChecklistSubtaskRow(
+    groupName: String,
+    subtask: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val isSubChecked = subtask.startsWith("[x] ")
+    val cleanSubName = if (isSubChecked) subtask.substring(4) else subtask
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, top = 2.dp, bottom = 2.dp)
+    ) {
+        TaskCheckbox(
+            checked = isSubChecked,
+            onCheckedChange = { onToggleCheck(groupName, subtask) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanSubName,
+            fontSize = 13.sp,
+            color = if (isSubChecked) Color.Gray else Color(0xFF4A4A5A),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun TaskCardChecklist(
+    checklist: List<Pair<String, List<String>>>,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    checklist.forEach { (groupName, subtasks) ->
+        TaskCardChecklistGroupRow(groupName, onToggleCheck)
+        subtasks.forEach { subtask ->
+            TaskCardChecklistSubtaskRow(groupName, subtask, onToggleCheck)
+        }
+    }
+}
+
+@Composable
 fun TaskCardItem(
     state: TaskCardDisplayState,
     onToggleCheck: (String, String?) -> Unit = { _, _ -> },
@@ -955,54 +1025,10 @@ fun TaskCardItem(
                 HorizontalDivider(color = Color(0xFFF0F0F0))
                 Spacer(modifier = Modifier.height(8.dp))
 
-                state.checklist.forEach { (groupName, subtasks) ->
-                    val isGroupChecked = groupName.startsWith("[x] ")
-                    val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    ) {
-                        TaskCheckbox(
-                            checked = isGroupChecked,
-                            onCheckedChange = { onToggleCheck(groupName, null) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = cleanGroupName,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isGroupChecked) Color.Gray else Color(0xFF1E1E1E),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    subtasks.forEach { subtask ->
-                        val isSubChecked = subtask.startsWith("[x] ")
-                        val cleanSubName = if (isSubChecked) subtask.substring(4) else subtask
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, top = 2.dp, bottom = 2.dp)
-                        ) {
-                            TaskCheckbox(
-                                checked = isSubChecked,
-                                onCheckedChange = { onToggleCheck(groupName, subtask) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = cleanSubName,
-                                fontSize = 13.sp,
-                                color = if (isSubChecked) Color.Gray else Color(0xFF4A4A5A),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
+                TaskCardChecklist(
+                    checklist = state.checklist,
+                    onToggleCheck = onToggleCheck
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))

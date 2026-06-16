@@ -340,6 +340,43 @@ fun RenderNoteCard(
     }
 }
 
+private fun toggleGroup(
+    group: String,
+    subtasks: List<String>,
+    clickedGroup: String
+): Pair<String, List<String>> {
+    if (group != clickedGroup) {
+        return Pair(group, subtasks)
+    }
+    val isGroupChecked = group.startsWith("[x] ")
+    val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
+    val newSubtasks = subtasks.map { sub ->
+        if (isGroupChecked) {
+            if (sub.startsWith("[x] ")) sub.substring(4) else sub
+        } else {
+            if (!sub.startsWith("[x] ")) "[x] $sub" else sub
+        }
+    }
+    return Pair(newGroup, newSubtasks)
+}
+
+private fun toggleSubtask(
+    group: String,
+    subtasks: List<String>,
+    clickedGroup: String,
+    clickedSubtask: String
+): Pair<String, List<String>> {
+    if (group != clickedGroup) {
+        return Pair(group, subtasks)
+    }
+    val newSubtasks = subtasks.map { sub ->
+        if (sub == clickedSubtask) {
+            if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
+        } else sub
+    }
+    return Pair(group, newSubtasks)
+}
+
 fun toggleChecklistItems(
     tasks: List<Pair<String, List<String>>>,
     clickedGroup: String,
@@ -347,31 +384,9 @@ fun toggleChecklistItems(
 ): List<Pair<String, List<String>>> {
     return tasks.map { (group, subtasks) ->
         if (clickedSubtask == null) {
-            if (group == clickedGroup) {
-                val isGroupChecked = group.startsWith("[x] ")
-                val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
-                val newSubtasks = subtasks.map { sub ->
-                    if (isGroupChecked) {
-                        if (sub.startsWith("[x] ")) sub.substring(4) else sub
-                    } else {
-                        if (!sub.startsWith("[x] ")) "[x] $sub" else sub
-                    }
-                }
-                Pair(newGroup, newSubtasks)
-            } else {
-                Pair(group, subtasks)
-            }
+            toggleGroup(group, subtasks, clickedGroup)
         } else {
-            if (group == clickedGroup) {
-                val newSubtasks = subtasks.map { sub ->
-                    if (sub == clickedSubtask) {
-                        if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
-                    } else sub
-                }
-                Pair(group, newSubtasks)
-            } else {
-                Pair(group, subtasks)
-            }
+            toggleSubtask(group, subtasks, clickedGroup, clickedSubtask)
         }
     }
 }

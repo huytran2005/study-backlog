@@ -59,4 +59,48 @@ class FocusScreenTest {
         composeTestRule.onNodeWithContentDescription("Start").assertExists()
         composeTestRule.onNodeWithText("Skip").assertIsDisplayed()
     }
+
+    @Test
+    fun focusScreen_settingsDialog_cancelDoesNotChangeTime() {
+        composeTestRule.setContent {
+            BrainNoteTheme {
+                FocusScreen()
+            }
+        }
+
+        // Click Settings button
+        composeTestRule.onNodeWithContentDescription("Settings").performClick()
+
+        // Verify settings dialog title and options are displayed
+        composeTestRule.onNodeWithText("Timer Settings").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Focus Duration").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Break Duration").assertIsDisplayed()
+
+        // Click Cancel to close the dialog
+        composeTestRule.onNodeWithText("Cancel").performClick()
+
+        // Verify dialog is dismissed and timer display remains default
+        composeTestRule.onNodeWithText("Timer Settings").assertDoesNotExist()
+        composeTestRule.onNodeWithText("25:00").assertIsDisplayed()
+    }
+
+    @Test
+    fun focusScreen_settingsDialog_saveKeepSettings() {
+        composeTestRule.setContent {
+            BrainNoteTheme {
+                FocusScreen()
+            }
+        }
+
+        // Open settings dialog
+        composeTestRule.onNodeWithContentDescription("Settings").performClick()
+
+        // Click Save
+        composeTestRule.onNodeWithText("Save").performClick()
+
+        // Verify dialog is closed and timer remains 25:00
+        composeTestRule.onNodeWithText("Timer Settings").assertDoesNotExist()
+        composeTestRule.onNodeWithText("25:00").assertIsDisplayed()
+    }
 }
+

@@ -30,21 +30,19 @@ class CreateTaskScreenTest {
             BrainNoteTheme {
                 CreateTaskScreen(
                     onBackClick = {},
-                    onSaveClick = { _, _, _, _, _, _ -> }
+                    onSaveClick = { _, _, _, _ -> }
                 )
             }
         }
 
         // Verify Title and Subtitle Header
-        composeTestRule.onNodeWithText("Nhiệm vụ").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Checklist các việc cần hoàn thành").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Nhiệm vụ hàng ngày").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Checklist các việc cần hoàn thành trong ngày").assertIsDisplayed()
 
         // Verify key text labels
         composeTestRule.onNodeWithText("Tiêu đề").assertExists()
         composeTestRule.onNodeWithText("Mô tả").assertExists()
-        composeTestRule.onNodeWithText("Danh mục").assertExists()
-        composeTestRule.onNodeWithText("Mức ưu tiên").assertExists()
-        composeTestRule.onNodeWithText("Hạn hoàn thành").assertExists()
+        composeTestRule.onNodeWithText("Lặp lại vào (Chọn nhiều ngày)").assertExists()
         composeTestRule.onNodeWithText("Checklist nhiệm vụ (Đa cấp)").assertExists()
     }
 
@@ -54,7 +52,7 @@ class CreateTaskScreenTest {
             BrainNoteTheme {
                 CreateTaskScreen(
                     onBackClick = {},
-                    onSaveClick = { _, _, _, _, _, _ -> }
+                    onSaveClick = { _, _, _, _ -> }
                 )
             }
         }
@@ -70,21 +68,17 @@ class CreateTaskScreenTest {
     fun createTaskScreen_fillsAllFieldsAndSaves_triggersCallback() {
         var savedTitle = ""
         var savedDescription = ""
-        var savedDueDate = ""
-        var savedPriority = ""
-        var savedCategory = ""
+        var savedDaysOfWeek: List<String>? = null
         var savedChecklist: List<Pair<String, List<String>>>? = null
 
         composeTestRule.setContent {
             BrainNoteTheme {
                 CreateTaskScreen(
                     onBackClick = {},
-                    onSaveClick = { title, description, dueDate, priority, category, checklist ->
+                    onSaveClick = { title, description, daysOfWeek, checklist ->
                         savedTitle = title
                         savedDescription = description
-                        savedDueDate = dueDate
-                        savedPriority = priority
-                        savedCategory = category
+                        savedDaysOfWeek = daysOfWeek
                         savedChecklist = checklist
                     }
                 )
@@ -100,34 +94,31 @@ class CreateTaskScreenTest {
         // 2. Enter Description
         fields[1].performTextInput("Use Compose rules to test screens")
 
-        // 3. Select Category (Work)
-        composeTestRule.onNodeWithText("Work").performScrollTo().performClick()
+        // 3. Select Days (T2 / Thứ 2, T3 / Thứ 3)
+        composeTestRule.onNodeWithText("T2").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("T3").performScrollTo().performClick()
 
-        // 4. Select Priority (Cao)
-        composeTestRule.onNodeWithText("Cao").performScrollTo().performClick()
-
-        // 5. We skip entering date because it is read-only in tests
-
-        // 6. Add Checklist Group (the group title is the next editable field)
+        // 4. Add Checklist Group (the group title is the next editable field)
         composeTestRule.onNodeWithText("Nhập nhóm nhiệm vụ chính...").performScrollTo().performTextInput("Setup Environment")
         composeTestRule.onNode(hasContentDescription("Add Group") or hasText("+ Nhóm")).performScrollTo().performClick()
 
         // Assert new group is displayed
         composeTestRule.onNodeWithText("Setup Environment").performScrollTo().assertExists()
 
-        // 7. Add Subtask to that group
+        // 5. Add Subtask to that group
         composeTestRule.onNodeWithText("Thêm việc con...").performScrollTo().performTextInput("Install dependency")
         composeTestRule.onNodeWithContentDescription("Add Subtask").performScrollTo().performClick()
 
-        // 8. Click Create Task (Tạo nhiệm vụ)
+        // 6. Click Create Task (Tạo nhiệm vụ)
         composeTestRule.onNodeWithText("Tạo nhiệm vụ").performScrollTo().performClick()
 
-        // 9. Assert correct parameters passed to callback
+        // 7. Assert correct parameters passed to callback
         assertEquals("Learn Integration Tests", savedTitle)
         assertEquals("Use Compose rules to test screens", savedDescription)
-        assertEquals("", savedDueDate) // should be empty because we skipped it
-        assertEquals("Cao", savedPriority)
-        assertEquals("Work", savedCategory)
+        assertTrue(savedDaysOfWeek != null)
+        assertEquals(2, savedDaysOfWeek!!.size)
+        assertTrue(savedDaysOfWeek!!.contains("Thứ 2"))
+        assertTrue(savedDaysOfWeek!!.contains("Thứ 3"))
         
         // Assert checklist data structure
         val checklist = savedChecklist

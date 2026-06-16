@@ -88,44 +88,56 @@ fun NoteCardData.toJson(): JSONObject {
     return obj
 }
 
+private fun parseIdea(obj: JSONObject): NoteCardData.Idea {
+    return NoteCardData.Idea(
+        title = obj.getString("title"),
+        description = obj.getString("description"),
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseImageIdea(obj: JSONObject): NoteCardData.ImageIdea {
+    return NoteCardData.ImageIdea(
+        title = obj.getString("title"),
+        description = obj.getString("description"),
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseShoppingList(obj: JSONObject): NoteCardData.ShoppingList {
+    val arr = obj.getJSONArray("items")
+    val items = List(arr.length()) { arr.getString(it) }
+    return NoteCardData.ShoppingList(
+        title = obj.getString("title"),
+        items = items,
+        footerText = obj.getString("footerText")
+    )
+}
+
+private fun parseNestedTask(obj: JSONObject): NoteCardData.NestedTask {
+    val arr = obj.getJSONArray("tasks")
+    val tasks = List(arr.length()) { i ->
+        val taskObj = arr.getJSONObject(i)
+        val name = taskObj.getString("name")
+        val subtaskArr = taskObj.getJSONArray("subtasks")
+        val subtasks = List(subtaskArr.length()) { subtaskArr.getString(it) }
+        Pair(name, subtasks)
+    }
+    return NoteCardData.NestedTask(
+        title = obj.getString("title"),
+        description = obj.optString("description", ""),
+        tasks = tasks,
+        footerText = obj.getString("footerText")
+    )
+}
+
 fun jsonToNoteCardData(obj: JSONObject): NoteCardData? {
     return try {
         when (obj.getString("type")) {
-            "Idea" -> NoteCardData.Idea(
-                title = obj.getString("title"),
-                description = obj.getString("description"),
-                footerText = obj.getString("footerText")
-            )
-            "ImageIdea" -> NoteCardData.ImageIdea(
-                title = obj.getString("title"),
-                description = obj.getString("description"),
-                footerText = obj.getString("footerText")
-            )
-            "ShoppingList" -> {
-                val arr = obj.getJSONArray("items")
-                val items = List(arr.length()) { arr.getString(it) }
-                NoteCardData.ShoppingList(
-                    title = obj.getString("title"),
-                    items = items,
-                    footerText = obj.getString("footerText")
-                )
-            }
-            "NestedTask" -> {
-                val arr = obj.getJSONArray("tasks")
-                val tasks = List(arr.length()) { i ->
-                    val taskObj = arr.getJSONObject(i)
-                    val name = taskObj.getString("name")
-                    val subtaskArr = taskObj.getJSONArray("subtasks")
-                    val subtasks = List(subtaskArr.length()) { subtaskArr.getString(it) }
-                    Pair(name, subtasks)
-                }
-                NoteCardData.NestedTask(
-                    title = obj.getString("title"),
-                    description = obj.optString("description", ""),
-                    tasks = tasks,
-                    footerText = obj.getString("footerText")
-                )
-            }
+            "Idea" -> parseIdea(obj)
+            "ImageIdea" -> parseImageIdea(obj)
+            "ShoppingList" -> parseShoppingList(obj)
+            "NestedTask" -> parseNestedTask(obj)
             else -> null
         }
     } catch (e: Exception) {
@@ -225,6 +237,9 @@ fun NoteDashboardScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F4F8)) // Figma canvas color
     ) {
+        val quickNotes = notesList.mapIndexed { index, item -> Pair(index, item) }
+            .filter { it.second is NoteCardData.Idea || it.second is NoteCardData.ImageIdea }
+
         // Scrollable content
         Column(
             modifier = Modifier
@@ -248,26 +263,26 @@ fun NoteDashboardScreen(
                     .padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Left Column (Even indexes)
+                // Left Column (Even indexes of filtered list)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    notesList.forEachIndexed { index, item ->
+                    quickNotes.forEachIndexed { index, (originalIndex, item) ->
                         if (index % 2 == 0) {
-                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(index) })
+                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(originalIndex) })
                         }
                     }
                 }
 
-                // Right Column (Odd indexes)
+                // Right Column (Odd indexes of filtered list)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    notesList.forEachIndexed { index, item ->
+                    quickNotes.forEachIndexed { index, (originalIndex, item) ->
                         if (index % 2 == 1) {
-                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(index) })
+                            RenderNoteCard(item, onTaskCardClick = { onTaskCardClick(originalIndex) })
                         }
                     }
                 }
@@ -324,3 +339,55 @@ fun RenderNoteCard(
         }
     }
 }
+
+private fun toggleGroup(
+    group: String,
+    subtasks: List<String>,
+    clickedGroup: String
+): Pair<String, List<String>> {
+    if (group != clickedGroup) {
+        return Pair(group, subtasks)
+    }
+    val isGroupChecked = group.startsWith("[x] ")
+    val newGroup = if (isGroupChecked) group.substring(4) else "[x] $group"
+    val newSubtasks = subtasks.map { sub ->
+        if (isGroupChecked) {
+            if (sub.startsWith("[x] ")) sub.substring(4) else sub
+        } else {
+            if (!sub.startsWith("[x] ")) "[x] $sub" else sub
+        }
+    }
+    return Pair(newGroup, newSubtasks)
+}
+
+private fun toggleSubtask(
+    group: String,
+    subtasks: List<String>,
+    clickedGroup: String,
+    clickedSubtask: String
+): Pair<String, List<String>> {
+    if (group != clickedGroup) {
+        return Pair(group, subtasks)
+    }
+    val newSubtasks = subtasks.map { sub ->
+        if (sub == clickedSubtask) {
+            if (sub.startsWith("[x] ")) sub.substring(4) else "[x] $sub"
+        } else sub
+    }
+    return Pair(group, newSubtasks)
+}
+
+fun toggleChecklistItems(
+    tasks: List<Pair<String, List<String>>>,
+    clickedGroup: String,
+    clickedSubtask: String?
+): List<Pair<String, List<String>>> {
+    return tasks.map { (group, subtasks) ->
+        if (clickedSubtask == null) {
+            toggleGroup(group, subtasks, clickedGroup)
+        } else {
+            toggleSubtask(group, subtasks, clickedGroup, clickedSubtask)
+        }
+    }
+}
+

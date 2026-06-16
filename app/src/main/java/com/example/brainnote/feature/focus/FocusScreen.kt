@@ -44,14 +44,68 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.filled.Check
+import com.example.brainnote.feature.home.NoteRepository
+import com.example.brainnote.feature.home.NoteCardData
+import com.example.brainnote.feature.home.toggleChecklistItems
 
 enum class FocusState {
     FOCUSING,
     BREAKING
 }
 
+fun getFocusBackgroundBrush(focusState: FocusState): Brush {
+    return if (focusState == FocusState.FOCUSING) {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFF0B0B1F), Color(0xFF09091C))
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFF27D17F), Color(0xFF06684A))
+        )
+    }
+}
+
+@Composable
+fun ActiveTaskChecklist(
+    activeTaskIndex: Int?,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val notesList by NoteRepository.notes.collectAsState()
+    val activeTask = activeTaskIndex?.let { notesList.getOrNull(it) as? NoteCardData.NestedTask }
+    if (activeTask != null) {
+        FocusTaskChecklist(
+            task = activeTask,
+            onToggleCheck = onToggleCheck
+        )
+    }
+}
+
+private fun calculateTimerProgress(focusState: FocusState, focusDuration: Int, breakDuration: Int, timeRemaining: Int): Float {
+    val maxDuration = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
+    return if (maxDuration > 0) timeRemaining.toFloat() / maxDuration.toFloat() else 0f
+}
+
+private fun handleToggleCheck(
+    activeTaskIndex: Int?,
+    clickedGroup: String,
+    clickedSubtask: String?
+) {
+    if (activeTaskIndex == null) return
+    val notesList = NoteRepository.notes.value
+    val activeTask = notesList.getOrNull(activeTaskIndex) as? NoteCardData.NestedTask
+    if (activeTask != null) {
+        val updatedList = toggleChecklistItems(activeTask.tasks, clickedGroup, clickedSubtask)
+        NoteRepository.updateNote(activeTaskIndex, activeTask.copy(tasks = updatedList))
+    }
+}
+
 @Composable
 fun FocusScreen(
+    activeTaskIndex: Int? = null,
     onCloseClick: () -> Unit = {},
     viewModel: FocusViewModel = viewModel()
 ) {
@@ -70,17 +124,7 @@ fun FocusScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                if (focusState == FocusState.FOCUSING) {
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF0B0B1F), Color(0xFF09091C))
-                    )
-                } else {
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF27D17F), Color(0xFF06684A))
-                    )
-                }
-            )
+            .background(getFocusBackgroundBrush(focusState))
     ) {
         // Floating particles (reduced by 60%, total 6 particles, with different opacities and slow animation)
         AnimatedFloatingParticles(focusState = focusState)
@@ -107,8 +151,7 @@ fun FocusScreen(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                val maxDuration = if (focusState == FocusState.FOCUSING) focusDuration else breakDuration
-                val progress = if (maxDuration > 0) timeRemaining.toFloat() / maxDuration.toFloat() else 0f
+                val progress = calculateTimerProgress(focusState, focusDuration, breakDuration, timeRemaining)
                 
                 TimerRing(
                     progress = progress,
@@ -117,6 +160,14 @@ fun FocusScreen(
                     isRunning = isRunning
                 )
             }
+
+            // Checklist section (If there is an active task)
+            ActiveTaskChecklist(
+                activeTaskIndex = activeTaskIndex,
+                onToggleCheck = { clickedGroup, clickedSubtask ->
+                    handleToggleCheck(activeTaskIndex, clickedGroup, clickedSubtask)
+                }
+            )
 
             // Bottom controls
             Column(
@@ -720,4 +771,146 @@ private fun formatTime(seconds: Int): String {
     val mins = seconds / 60
     val secs = seconds % 60
     return String.format("%02d:%02d", mins, secs)
+}
+
+private fun parseTaskStatusAndName(name: String): Pair<Boolean, String> {
+    val isChecked = name.startsWith("[x] ")
+    val cleanName = if (isChecked) name.substring(4) else name
+    return Pair(isChecked, cleanName)
+}
+
+@Composable
+private fun ChecklistGroupRow(
+    groupName: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val (isGroupChecked, cleanGroupName) = parseTaskStatusAndName(groupName)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+    ) {
+        FocusTaskCheckbox(
+            checked = isGroupChecked,
+            onCheckedChange = { onToggleCheck(groupName, null) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanGroupName,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isGroupChecked) Color.Gray else Color.White
+        )
+    }
+}
+
+@Composable
+private fun ChecklistSubtaskRow(
+    groupName: String,
+    subtask: String,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    val (isSubChecked, cleanSubName) = parseTaskStatusAndName(subtask)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, top = 1.dp, bottom = 1.dp)
+    ) {
+        FocusTaskCheckbox(
+            checked = isSubChecked,
+            onCheckedChange = { onToggleCheck(groupName, subtask) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = cleanSubName,
+            fontSize = 13.sp,
+            color = if (isSubChecked) Color.Gray else Color.White.copy(alpha = 0.8f)
+        )
+    }
+}
+
+@Composable
+fun FocusTaskChecklist(
+    task: NoteCardData.NestedTask,
+    onToggleCheck: (String, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color.White.copy(alpha = 0.05f)),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Task Title & Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(Color(0xFF7C4DFF), CircleShape)
+                )
+                Text(
+                    text = task.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Subtasks list
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 160.dp) // Limit height and scroll if long
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                task.tasks.forEach { (groupName, subtasks) ->
+                    ChecklistGroupRow(groupName, onToggleCheck)
+                    subtasks.forEach { subtask ->
+                        ChecklistSubtaskRow(groupName, subtask, onToggleCheck)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FocusTaskCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = if (checked) Color(0xFF7C4DFF) else Color.White.copy(alpha = 0.4f)
+    val backgroundColor = if (checked) Color(0xFF7C4DFF) else Color.Transparent
+
+    Box(
+        modifier = modifier
+            .size(16.dp)
+            .border(1.5.dp, borderColor, RoundedCornerShape(4.dp))
+            .background(backgroundColor, RoundedCornerShape(4.dp))
+            .clickable { onCheckedChange(!checked) },
+        contentAlignment = Alignment.Center
+    ) {
+        if (checked) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(10.dp)
+            )
+        }
+    }
 }

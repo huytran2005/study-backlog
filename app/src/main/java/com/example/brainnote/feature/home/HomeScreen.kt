@@ -121,6 +121,7 @@ fun HomeScreen(
                 }
                 2 -> Box(modifier = Modifier.fillMaxSize()) {
                     TasksScreen(
+                        bottomPadding = bottomPadding,
                         onTaskCardClick = onTaskCardClick,
                         onFocusClick = { index ->
                             activeFocusTaskIndex = index
@@ -361,6 +362,7 @@ private fun getTaskStats(taskItems: List<Pair<Int, NoteCardData.NestedTask>>): T
 
 @Composable
 fun TasksScreen(
+    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onTaskCardClick: (Int) -> Unit = {},
     onFocusClick: (Int) -> Unit = {}
 ) {
@@ -487,7 +489,7 @@ fun TasksScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
+            Spacer(modifier = Modifier.height(100.dp + bottomPadding)) // padding for bottom bar
         }
     }
 }

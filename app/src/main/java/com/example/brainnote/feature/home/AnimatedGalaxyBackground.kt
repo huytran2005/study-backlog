@@ -87,7 +87,7 @@ fun AnimatedGalaxyBackground(modifier: Modifier = Modifier) {
         // Floating Clouds
         Image(
             painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = "Cloud 1",
+            contentDescription = null,
             modifier = Modifier
                 .offset(x = cloud1X.dp, y = 150.dp)
                 .size(280.dp)
@@ -97,7 +97,7 @@ fun AnimatedGalaxyBackground(modifier: Modifier = Modifier) {
 
         Image(
             painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = "Cloud 2",
+            contentDescription = null,
             modifier = Modifier
                 .offset(x = cloud2X.dp, y = 350.dp)
                 .size(140.dp)
@@ -107,7 +107,7 @@ fun AnimatedGalaxyBackground(modifier: Modifier = Modifier) {
 
         Image(
             painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = "Cloud 3",
+            contentDescription = null,
             modifier = Modifier
                 .offset(x = cloud3X.dp, y = 600.dp)
                 .size(350.dp)
@@ -117,7 +117,7 @@ fun AnimatedGalaxyBackground(modifier: Modifier = Modifier) {
 
         Image(
             painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = "Cloud 4",
+            contentDescription = null,
             modifier = Modifier
                 .offset(x = cloud4X.dp, y = 50.dp)
                 .size(100.dp)
@@ -128,7 +128,7 @@ fun AnimatedGalaxyBackground(modifier: Modifier = Modifier) {
         // Mountain image at the bottom
         Image(
             painter = painterResource(id = R.drawable.home_mou),
-            contentDescription = "Mountain background",
+            contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)

@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -99,22 +100,28 @@ fun HomeScreen(
         },
         containerColor = if (selectedTab == 0 || selectedTab == 2) Color.Transparent else Color(0xFFF5F4F8)
     ) { innerPadding ->
+        // We only apply innerPadding to tabs that need it, 
+        // to allow NoteDashboardScreen's starry sky to draw behind the transparent bottom bar.
         Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
+            val bottomPadding = innerPadding.calculateBottomPadding()
             when (selectedTab) {
                 0 -> Box(modifier = Modifier.fillMaxSize()) {
                     NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
                 }
-                1 -> FocusScreen(
-                    activeTaskIndex = activeFocusTaskIndex,
-                    onCloseClick = { 
-                        selectedTab = 0 
-                        activeFocusTaskIndex = null
-                    }
-                )
+                1 -> Box(modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding)) {
+                    FocusScreen(
+                        activeTaskIndex = activeFocusTaskIndex,
+                        onCloseClick = { 
+                            selectedTab = 0 
+                            activeFocusTaskIndex = null
+                        }
+                    )
+                }
                 2 -> Box(modifier = Modifier.fillMaxSize()) {
                     TasksScreen(
+                        bottomPadding = bottomPadding,
                         onTaskCardClick = onTaskCardClick,
                         onFocusClick = { index ->
                             activeFocusTaskIndex = index
@@ -122,7 +129,7 @@ fun HomeScreen(
                         }
                     )
                 }
-                3 -> Box(modifier = Modifier.fillMaxSize()) {
+                3 -> Box(modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding)) {
                     SettingsScreen()
                 }
             }
@@ -193,7 +200,7 @@ fun CustomBottomNavigationBar(
     )
 
     Surface(
-        color = colors.cardBg,
+        color = Color(0xFF1E1533).copy(alpha = 0.95f), // Mostly opaque dark purple to prevent text overlap
         shadowElevation = 6.dp,
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
@@ -355,6 +362,7 @@ private fun getTaskStats(taskItems: List<Pair<Int, NoteCardData.NestedTask>>): T
 
 @Composable
 fun TasksScreen(
+    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onTaskCardClick: (Int) -> Unit = {},
     onFocusClick: (Int) -> Unit = {}
 ) {
@@ -402,13 +410,8 @@ fun TasksScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // Background Starry Sky Image
-        Image(
-            painter = painterResource(id = R.drawable.home_background),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-        )
+        // Galaxy Gradient Background with Floating Clouds & Mountain Overlay
+        AnimatedGalaxyBackground()
 
         // Twinkling Stars Overlay
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -486,7 +489,7 @@ fun TasksScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
+            Spacer(modifier = Modifier.height(100.dp + bottomPadding)) // padding for bottom bar
         }
     }
 }

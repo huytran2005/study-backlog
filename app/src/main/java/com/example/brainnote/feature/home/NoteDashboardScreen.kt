@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
@@ -398,13 +399,8 @@ fun NoteDashboardScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // 1. Starry Night Sky Background Image (home_background)
-        Image(
-            painter = painterResource(id = R.drawable.home_background),
-            contentDescription = "Starry night sky background",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        // Galaxy Gradient Background with Floating Clouds & Mountain Overlay
+        AnimatedGalaxyBackground()
 
         // 2. Starry Night Sky Canvas (Twinkling star dots + Shifting Aurora gradients overlay)
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -467,42 +463,6 @@ fun NoteDashboardScreen(
             )
         }
 
-        // 2. Floating Cloud Assets (home_cloud illustration with gentle bobbing animations)
-        // Top Right Cloud
-        Image(
-            painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 20.dp)
-                .offset(x = 30.dp, y = cloudTranslationY.dp)
-                .size(260.dp)
-                .alpha(0.85f)
-        )
-
-        // Middle Left Cloud
-        Image(
-            painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(top = 180.dp)
-                .offset(x = (-40).dp, y = -cloudTranslationY.dp)
-                .size(200.dp)
-                .alpha(0.6f)
-        )
-
-        // Bottom Right Cloud (Subtle background layer)
-        Image(
-            painter = painterResource(id = R.drawable.home_cloud),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 80.dp)
-                .offset(x = 20.dp, y = cloudTranslationY.dp * 0.7f)
-                .size(160.dp)
-                .alpha(0.4f)
-        )
 
         Column(
             modifier = Modifier
@@ -708,10 +668,9 @@ fun NoteDashboardScreen(
                 notesList.forEachIndexed { index, note ->
                     when (note) {
                         is NoteCardData.Idea -> {
-                            AchievementBentoCell(
+                            NoteBentoCell(
                                 title = note.title,
                                 description = note.description,
-                                isUnlocked = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
@@ -719,10 +678,9 @@ fun NoteDashboardScreen(
                             )
                         }
                         is NoteCardData.ImageIdea -> {
-                            AchievementBentoCell(
+                            NoteBentoCell(
                                 title = note.title,
                                 description = note.description,
-                                isUnlocked = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
@@ -740,21 +698,13 @@ fun NoteDashboardScreen(
                             )
                         }
                         is NoteCardData.NestedTask -> {
-                            AchievementBentoCell(
-                                title = note.title,
-                                description = note.description.ifEmpty { "Nhiệm vụ với ${note.tasks.size} nhóm" },
-                                isUnlocked = true,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .padding(bottom = 12.dp)
-                            )
+                            // Do nothing: tasks are not shown in this section
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(160.dp))
         }
     }
 }

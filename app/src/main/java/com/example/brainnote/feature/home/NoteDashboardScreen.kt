@@ -708,10 +708,9 @@ fun NoteDashboardScreen(
                 notesList.forEachIndexed { index, note ->
                     when (note) {
                         is NoteCardData.Idea -> {
-                            AchievementBentoCell(
+                            NoteBentoCell(
                                 title = note.title,
                                 description = note.description,
-                                isUnlocked = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
@@ -719,10 +718,9 @@ fun NoteDashboardScreen(
                             )
                         }
                         is NoteCardData.ImageIdea -> {
-                            AchievementBentoCell(
+                            NoteBentoCell(
                                 title = note.title,
                                 description = note.description,
-                                isUnlocked = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(80.dp)
@@ -740,15 +738,7 @@ fun NoteDashboardScreen(
                             )
                         }
                         is NoteCardData.NestedTask -> {
-                            AchievementBentoCell(
-                                title = note.title,
-                                description = note.description.ifEmpty { "Nhiệm vụ với ${note.tasks.size} nhóm" },
-                                isUnlocked = true,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .padding(bottom = 12.dp)
-                            )
+                            // Do nothing: tasks are not shown in this section
                         }
                     }
                 }

@@ -584,6 +584,46 @@ fun AchievementBentoCell(
 }
 
 /**
+ * Minimalist cell for simple notes without achievement badges
+ */
+@Composable
+fun NoteBentoCell(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
+) {
+    val colors = getBentoColors()
+
+    BentoCell(modifier = modifier) { _, _ ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Text(
+                text = description,
+                fontSize = 10.5.sp,
+                color = colors.textSecondary,
+                lineHeight = 13.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+/**
  * Re-implemented ShoppingListCard matching new bento gradient theme
  */
 @Composable

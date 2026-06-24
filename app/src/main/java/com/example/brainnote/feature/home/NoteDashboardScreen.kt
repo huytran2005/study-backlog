@@ -247,6 +247,7 @@ object NoteRepository {
 fun NoteDashboardScreen(
     onTaskCardClick: (Int) -> Unit = {}
 ) {
+    val notesList by NoteRepository.notes.collectAsState()
     val scrollState = rememberScrollState()
     val colors = getBentoColors()
 
@@ -625,7 +626,7 @@ fun NoteDashboardScreen(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Huy Tran",
+                                text = "Người dùng",
                                 fontSize = 19.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = colors.textPrimary
@@ -692,6 +693,66 @@ fun NoteDashboardScreen(
                     .fillMaxWidth()
                     .height(100.dp)
             )
+
+            if (notesList.isNotEmpty()) {
+                Text(
+                    text = "GHI CHÚ CỦA BẠN",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textSecondary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 12.dp)
+                )
+
+                notesList.forEachIndexed { index, note ->
+                    when (note) {
+                        is NoteCardData.Idea -> {
+                            AchievementBentoCell(
+                                title = note.title,
+                                description = note.description,
+                                isUnlocked = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(bottom = 12.dp)
+                            )
+                        }
+                        is NoteCardData.ImageIdea -> {
+                            AchievementBentoCell(
+                                title = note.title,
+                                description = note.description,
+                                isUnlocked = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(bottom = 12.dp)
+                            )
+                        }
+                        is NoteCardData.ShoppingList -> {
+                            ShoppingListCard(
+                                title = note.title,
+                                items = note.items,
+                                footerText = note.footerText,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp)
+                            )
+                        }
+                        is NoteCardData.NestedTask -> {
+                            AchievementBentoCell(
+                                title = note.title,
+                                description = note.description.ifEmpty { "Nhiệm vụ với ${note.tasks.size} nhóm" },
+                                isUnlocked = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .padding(bottom = 12.dp)
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(100.dp))
         }

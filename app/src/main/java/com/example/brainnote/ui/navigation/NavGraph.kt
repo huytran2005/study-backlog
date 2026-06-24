@@ -107,7 +107,11 @@ fun StudyBacklogApp() {
                     navController.navigate(BrainNoteDestinations.NEW_NOTE_TYPE_ROUTE)
                 },
                 onTaskCardClick = { index ->
-                    navController.navigate("${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex=$index")
+                    if (index == -1) {
+                        navController.navigate(BrainNoteDestinations.CREATE_TASK_ROUTE)
+                    } else {
+                        navController.navigate("${BrainNoteDestinations.CREATE_TASK_ROUTE}?taskIndex=$index")
+                    }
                 }
             )
         }

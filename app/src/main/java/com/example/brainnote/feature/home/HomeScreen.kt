@@ -51,11 +51,16 @@ import androidx.compose.material.icons.filled.Flag
 
 
 import android.app.Activity
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.animation.core.*
+import androidx.compose.ui.res.painterResource
+import com.example.brainnote.R
+import androidx.compose.foundation.BorderStroke
 
 private const val CATEGORY_PREFIX = "Category: "
 
@@ -67,7 +72,6 @@ fun HomeScreen(
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var activeFocusTaskIndex by remember { mutableStateOf<Int?>(null) }
-    val primaryColor = Color(0xFF7445C8)
 
     // Scope immersive system bars to home screen destination and restore when leaving
     val view = LocalView.current
@@ -88,26 +92,18 @@ fun HomeScreen(
             if (selectedTab != 1) {
                 CustomBottomNavigationBar(
                     selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it }
+                    onTabSelected = { selectedTab = it },
+                    onAddNoteClick = onAddNoteClick
                 )
             }
         },
-        floatingActionButton = {
-            if (selectedTab != 1) {
-                LargeFAB(
-                    primaryColor = primaryColor,
-                    onClick = onAddNoteClick
-                )
-            }
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        containerColor = Color(0xFFF5F4F8)
+        containerColor = if (selectedTab == 0 || selectedTab == 2) Color.Transparent else Color(0xFFF5F4F8)
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
             when (selectedTab) {
-                0 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                0 -> Box(modifier = Modifier.fillMaxSize()) {
                     NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
                 }
                 1 -> FocusScreen(
@@ -117,7 +113,7 @@ fun HomeScreen(
                         activeFocusTaskIndex = null
                     }
                 )
-                2 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                2 -> Box(modifier = Modifier.fillMaxSize()) {
                     TasksScreen(
                         onTaskCardClick = onTaskCardClick,
                         onFocusClick = { index ->
@@ -126,7 +122,7 @@ fun HomeScreen(
                         }
                     )
                 }
-                3 -> Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                3 -> Box(modifier = Modifier.fillMaxSize()) {
                     SettingsScreen()
                 }
             }
@@ -177,56 +173,40 @@ class NotchShape(private val circleRadiusDp: Float, private val notchDepthDp: Fl
 }
 
 /**
- * Reusable Large FAB component styled with a premium white outline and shadow.
+ * Modern Material 3 Floating Bottom Navigation Bar (No Notch)
  */
-@Composable
-fun LargeFAB(
-    primaryColor: Color,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .size(68.dp)
-            .offset(y = 34.dp) // Half-embedded inside the notch
-            .shadow(10.dp, CircleShape, spotColor = primaryColor.copy(alpha = 0.4f))
-            .background(primaryColor, CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "Add note",
-            tint = Color.White,
-            modifier = Modifier.size(30.dp)
-        )
-    }
-}
-
 /**
- * Bottom Navigation containing Home, Finished, Tasks, Settings with a gap in the center.
+ * Modern Material 3 Floating Bottom Navigation Bar (No Notch)
  */
 @Composable
 fun CustomBottomNavigationBar(
     selectedTab: Int,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
+    onAddNoteClick: () -> Unit
 ) {
-    val barShape = NotchShape(circleRadiusDp = 42f, notchDepthDp = 32f)
+    val colors = getBentoColors()
+    val gradientBrush =
+        Brush.linearGradient(
+        colors = listOf(colors.gradientStart, colors.gradientEnd),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
 
     Surface(
-        color = Color.White.copy(alpha = 0.96f),
-        shadowElevation = 8.dp,
-        shape = barShape,
+        color = colors.cardBg,
+        shadowElevation = 6.dp,
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp)
             .navigationBarsPadding()
-            .border(1.dp, Color.White.copy(alpha = 0.1f), barShape)
+            .border(1.dp, colors.cardBorder, RoundedCornerShape(24.dp))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .padding(horizontal = 16.dp),
+                .height(68.dp)
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -245,8 +225,22 @@ fun CustomBottomNavigationBar(
                 modifier = Modifier.weight(1f)
             )
 
-            // Space holder for the FAB notch
-            Spacer(modifier = Modifier.weight(0.9f))
+            // Center integrated Add FAB Button styled with bento gradient
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(gradientBrush, CircleShape)
+                    .clip(CircleShape)
+                    .clickable(onClick = onAddNoteClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             BottomTabItem(
                 icon = Icons.Outlined.CheckCircle,
@@ -274,8 +268,9 @@ fun RowScope.BottomTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val activeColor = Color(0xFF7445C8)
-    val inactiveColor = Color(0xFF8A8A95)
+    val colors = getBentoColors()
+    val activeColor = colors.accentPurple
+    val inactiveColor = colors.textSecondary.copy(alpha = 0.6f)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -284,18 +279,26 @@ fun RowScope.BottomTabItem(
             .clickable(onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = if (isSelected) activeColor else inactiveColor,
-            modifier = Modifier.size(26.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (isSelected) activeColor.copy(alpha = 0.15f) else Color.Transparent)
+                .padding(horizontal = 14.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isSelected) activeColor else inactiveColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
-            fontSize = 11.sp,
-            color = if (isSelected) activeColor else inactiveColor,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            fontSize = 10.sp,
+            color = if (isSelected) colors.textPrimary else inactiveColor,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
         )
     }
 }
@@ -332,100 +335,165 @@ fun FinishedNotesScreen() {
     }
 }
 
+data class TaskStats(
+    val totalCount: Int, val inProgressCount: Int, val completedCount: Int,
+    val highCount: Int, val mediumCount: Int, val lowCount: Int, val noneCount: Int
+)
+
+private fun getTaskStats(taskItems: List<Pair<Int, NoteCardData.NestedTask>>): TaskStats {
+    val isEmpty = taskItems.isEmpty()
+    return TaskStats(
+        totalCount = if (isEmpty) 12 else taskItems.size,
+        inProgressCount = if (isEmpty) 5 else taskItems.count { !it.second.footerText.contains("Finished") },
+        completedCount = if (isEmpty) 7 else taskItems.count { it.second.footerText.contains("Finished") },
+        highCount = if (isEmpty) 2 else taskItems.count { it.second.footerText.contains("High") || it.second.footerText.contains("Cao") },
+        mediumCount = if (isEmpty) 5 else taskItems.count { it.second.footerText.contains("Medium") || it.second.footerText.contains("Trung bình") },
+        lowCount = if (isEmpty) 3 else taskItems.count { it.second.footerText.contains("Low") || it.second.footerText.contains("Thấp") },
+        noneCount = 2
+    )
+}
+
 @Composable
 fun TasksScreen(
     onTaskCardClick: (Int) -> Unit = {},
     onFocusClick: (Int) -> Unit = {}
 ) {
     val notesList by NoteRepository.notes.collectAsState()
+    val colors = getBentoColors()
 
     // Filter only NestedTask items and pair them with their original index
     val taskItems = notesList.mapIndexed { index, data -> Pair(index, data) }
         .filter { it.second is NoteCardData.NestedTask }
         .map { Pair(it.first, it.second as NoteCardData.NestedTask) }
 
-    // Dynamic stats computation
-    val totalCount = if (taskItems.isEmpty()) 12 else taskItems.size
-    val inProgressCount = if (taskItems.isEmpty()) 5 else taskItems.filter { !it.second.footerText.contains("Finished") }.size
-    val completedCount = if (taskItems.isEmpty()) 7 else taskItems.filter { it.second.footerText.contains("Finished") }.size
-
-    // Priority stats
-    val highCount = if (taskItems.isEmpty()) 2 else taskItems.filter { it.second.footerText.contains("High") || it.second.footerText.contains("Cao") }.size
-    val mediumCount = if (taskItems.isEmpty()) 5 else taskItems.filter { it.second.footerText.contains("Medium") || it.second.footerText.contains("Trung bình") }.size
-    val lowCount = if (taskItems.isEmpty()) 3 else taskItems.filter { it.second.footerText.contains("Low") || it.second.footerText.contains("Thấp") }.size
-    val noneCount = 2
+    val stats = getTaskStats(taskItems)
+    val totalCount = stats.totalCount
+    val inProgressCount = stats.inProgressCount
+    val completedCount = stats.completedCount
+    val highCount = stats.highCount
+    val mediumCount = stats.mediumCount
+    val lowCount = stats.lowCount
+    val noneCount = stats.noneCount
 
     var selectedCategory by remember { mutableStateOf("All") }
 
-    Column(
+    // Twinkling stars position memory and animation
+    val infiniteTransition = rememberInfiniteTransition(label = "tasks_bg")
+    val stars = remember {
+        List(40) {
+            Offset(
+                x = (0..1000).random() / 1000f,
+                y = (0..1000).random() / 1000f
+            )
+        }
+    }
+    val twinkle by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "tasks_twinkle"
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFAFAFC)) // Soft iOS background
-            .padding(horizontal = 24.dp, vertical = 24.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .background(colors.background)
     ) {
-        TasksHeader()
-
-        CategoryTabs(
-            taskItems = taskItems,
-            selectedCategory = selectedCategory,
-            onCategorySelected = { selectedCategory = it }
+        // Background Starry Sky Image
+        Image(
+            painter = painterResource(id = R.drawable.home_background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop
         )
 
-        // Statistics Card
-        StatisticsSection(
-            total = totalCount,
-            inProgress = inProgressCount,
-            completed = completedCount,
-            high = highCount,
-            medium = mediumCount,
-            low = lowCount,
-            none = noneCount
-        )
-
-        // Upcoming Tasks Section
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Upcoming Tasks",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E1E1E)
-                )
-                Text(
-                    text = "See all",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF7C4DFF),
-                    modifier = Modifier.clickable { }
-                )
-            }
-
-            if (taskItems.isEmpty()) {
-                MockTasksView()
-            } else {
-                FilteredTasksView(
-                    taskItems = taskItems,
-                    selectedCategory = selectedCategory,
-                    onTaskCardClick = onTaskCardClick,
-                    onFocusClick = onFocusClick
+        // Twinkling Stars Overlay
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            stars.forEachIndexed { index, offset ->
+                val alphaFactor = if (index % 2 == 0) twinkle else (1.3f - twinkle)
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.45f * alphaFactor.coerceIn(0.1f, 1f)),
+                    radius = 0.8.dp.toPx(),
+                    center = Offset(offset.x * w, offset.y * h)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            TasksHeader()
+
+            CategoryTabs(
+                taskItems = taskItems,
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
+
+            // Statistics Card
+            StatisticsSection(
+                total = totalCount,
+                inProgress = inProgressCount,
+                completed = completedCount,
+                high = highCount,
+                medium = mediumCount,
+                low = lowCount,
+                none = noneCount
+            )
+
+            // Upcoming Tasks Section
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Upcoming Tasks",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.textPrimary
+                    )
+                    Text(
+                        text = "See all",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.accentPurple,
+                        modifier = Modifier.clickable { }
+                    )
+                }
+
+                if (taskItems.isEmpty()) {
+                    MockTasksView()
+                } else {
+                    FilteredTasksView(
+                        taskItems = taskItems,
+                        selectedCategory = selectedCategory,
+                        onTaskCardClick = onTaskCardClick,
+                        onFocusClick = onFocusClick
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(100.dp)) // padding for bottom bar
+        }
     }
 }
 
 @Composable
 fun TasksHeader() {
+    val colors = getBentoColors()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -436,13 +504,13 @@ fun TasksHeader() {
                 text = "My Tasks",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E1E1E)
+                color = colors.textPrimary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Stay organized and get things done.",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = colors.textSecondary
             )
         }
 
@@ -453,13 +521,13 @@ fun TasksHeader() {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
-                tint = Color(0xFF7C4DFF),
+                tint = colors.accentPurple,
                 modifier = Modifier.size(24.dp)
             )
             Icon(
                 imageVector = Icons.Outlined.Notifications,
                 contentDescription = "Notifications",
-                tint = Color(0xFF7C4DFF),
+                tint = colors.accentPurple,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -472,6 +540,7 @@ fun CategoryTabs(
     selectedCategory: String,
     onCategorySelected: (String) -> Unit
 ) {
+    val colors = getBentoColors()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -494,7 +563,8 @@ fun CategoryTabs(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(if (isSelected) Color(0xFF7C4DFF) else Color(0xFFF1EFF7))
+                    .background(if (isSelected) colors.accentPurple else colors.cardBg)
+                    .border(1.dp, colors.cardBorder, RoundedCornerShape(20.dp))
                     .clickable { onCategorySelected(categoryKey) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -503,13 +573,13 @@ fun CategoryTabs(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = if (isSelected) Color.White else Color(0xFF7C4DFF),
+                    tint = if (isSelected) Color.White else colors.accentPurple,
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
                     text = label,
                     fontSize = 13.sp,
-                    color = if (isSelected) Color.White else Color(0xFF4A4A5A),
+                    color = if (isSelected) Color.White else colors.textPrimary,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -519,6 +589,7 @@ fun CategoryTabs(
 
 @Composable
 fun MockTasksView() {
+    val colors = getBentoColors()
     var mockChecklist by remember { mutableStateOf(listOf(
         Pair("Preparation", listOf("Verify UI assets", "Design custom SVG graphics")),
         Pair("Development", listOf("Setup Jetpack Compose", "Implement Canvas drawings"))
@@ -541,7 +612,7 @@ fun MockTasksView() {
                     category = "Design",
                     progress = progress,
                     priority = "Medium",
-                    color = Color(0xFF7C4DFF),
+                    color = colors.accentPurple,
                     checklist = mockChecklist
                 ),
                 onToggleCheck = { clickedGroup, clickedSubtask ->
@@ -560,7 +631,7 @@ fun MockTasksView() {
                     category = "Work",
                     progress = 0.30f,
                     priority = "High",
-                    color = Color(0xFF3B82F6)
+                    color = Color(0xFFEF4444)
                 ),
                 onClick = {}
             )
@@ -627,12 +698,14 @@ fun StatisticsSection(
     low: Int,
     none: Int
 ) {
+    val colors = getBentoColors()
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.LightGray.copy(alpha = 0.2f)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(20.dp)
+            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = colors.accentPurple.copy(alpha = 0.08f)),
+        colors = CardDefaults.cardColors(containerColor = colors.cardBg),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, colors.cardBorder)
     ) {
         Column(
             modifier = Modifier
@@ -648,13 +721,13 @@ fun StatisticsSection(
                     count = total.toString(),
                     label = "Total Tasks",
                     icon = Icons.Outlined.Assignment,
-                    iconColor = Color(0xFF7C4DFF),
+                    iconColor = colors.accentPurple,
                     modifier = Modifier.weight(1f)
                 )
 
                 VerticalDivider(
                     modifier = Modifier.height(40.dp),
-                    color = Color(0xFFF0F0F2),
+                    color = colors.cardBorder,
                     thickness = 1.dp
                 )
 
@@ -668,7 +741,7 @@ fun StatisticsSection(
 
                 VerticalDivider(
                     modifier = Modifier.height(40.dp),
-                    color = Color(0xFFF0F0F2),
+                    color = colors.cardBorder,
                     thickness = 1.dp
                 )
 
@@ -682,7 +755,7 @@ fun StatisticsSection(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFFF0F0F2), thickness = 1.dp)
+            HorizontalDivider(color = colors.cardBorder, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
             // Legend / Annotation Row (Priority Counts)
@@ -692,9 +765,9 @@ fun StatisticsSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PriorityLegendItem(label = "High", count = high, color = Color(0xFFEF4444))
-                PriorityLegendItem(label = "Medium", count = medium, color = Color(0xFF7C4DFF))
+                PriorityLegendItem(label = "Medium", count = medium, color = colors.accentPurple)
                 PriorityLegendItem(label = "Low", count = low, color = Color(0xFF3B82F6))
-                PriorityLegendItem(label = "None", count = none, color = Color(0xFF8A8A95))
+                PriorityLegendItem(label = "None", count = none, color = colors.textSecondary)
             }
         }
     }
@@ -702,6 +775,7 @@ fun StatisticsSection(
 
 @Composable
 fun PriorityLegendItem(label: String, count: Int, color: Color) {
+    val colors = getBentoColors()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -715,7 +789,7 @@ fun PriorityLegendItem(label: String, count: Int, color: Color) {
             text = "$label: $count",
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Gray
+            color = colors.textSecondary.copy(alpha = 0.8f)
         )
     }
 }
@@ -728,6 +802,7 @@ fun StatItem(
     iconColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val colors = getBentoColors()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -753,14 +828,14 @@ fun StatItem(
                 text = count,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E1E1E)
+                color = colors.textPrimary
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 12.sp,
-            color = Color.Gray
+            color = colors.textSecondary
         )
     }
 }
@@ -857,6 +932,7 @@ private fun TaskCardChecklistGroupRow(
 ) {
     val isGroupChecked = groupName.startsWith("[x] ")
     val cleanGroupName = if (isGroupChecked) groupName.substring(4) else groupName
+    val colors = getBentoColors()
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -871,7 +947,7 @@ private fun TaskCardChecklistGroupRow(
             text = cleanGroupName,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (isGroupChecked) Color.Gray else Color(0xFF1E1E1E),
+            color = if (isGroupChecked) colors.textSecondary.copy(alpha = 0.5f) else colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -886,6 +962,7 @@ private fun TaskCardChecklistSubtaskRow(
 ) {
     val isSubChecked = subtask.startsWith("[x] ")
     val cleanSubName = if (isSubChecked) subtask.substring(4) else subtask
+    val colors = getBentoColors()
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -901,7 +978,7 @@ private fun TaskCardChecklistSubtaskRow(
         Text(
             text = cleanSubName,
             fontSize = 13.sp,
-            color = if (isSubChecked) Color.Gray else Color(0xFF4A4A5A),
+            color = if (isSubChecked) colors.textSecondary.copy(alpha = 0.5f) else colors.textSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -929,19 +1006,21 @@ fun TaskCardItem(
     onClick: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val colors = getBentoColors()
 
     val priorityColor = when (state.priority.lowercase()) {
         "cao", "high" -> Color(0xFFEF4444)
-        "trung bình", "medium" -> Color(0xFF7C4DFF)
+        "trung bình", "medium" -> colors.accentPurple
         else -> Color(0xFF10B981)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = Color.LightGray.copy(alpha = 0.1f)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(18.dp)
+            .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = colors.accentPurple.copy(alpha = 0.08f)),
+        colors = CardDefaults.cardColors(containerColor = colors.cardBg),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, colors.cardBorder)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -960,7 +1039,7 @@ fun TaskCardItem(
                     text = state.title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E1E1E),
+                    color = colors.textPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -969,7 +1048,7 @@ fun TaskCardItem(
                 Icon(
                     imageVector = Icons.Outlined.Timer,
                     contentDescription = "Focus Mode",
-                    tint = Color(0xFF7C4DFF),
+                    tint = colors.accentPurple,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable { onFocusClick() }
@@ -978,7 +1057,7 @@ fun TaskCardItem(
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = "Expand/Collapse",
-                    tint = Color.Gray,
+                    tint = colors.textSecondary,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable { isExpanded = !isExpanded }
@@ -987,7 +1066,7 @@ fun TaskCardItem(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Options",
-                    tint = Color.Gray,
+                    tint = colors.textSecondary,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -997,7 +1076,7 @@ fun TaskCardItem(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .background(priorityColor.copy(alpha = 0.1f))
+                    .background(priorityColor.copy(alpha = 0.15f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
@@ -1013,7 +1092,7 @@ fun TaskCardItem(
                 Text(
                     text = state.description,
                     fontSize = 13.sp,
-                    color = Color.Gray,
+                    color = colors.textSecondary,
                     modifier = Modifier.clickable(onClick = onClick),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1022,7 +1101,7 @@ fun TaskCardItem(
 
             if (state.checklist.isNotEmpty() && isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = Color(0xFFF0F0F0))
+                HorizontalDivider(color = colors.cardBorder)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TaskCardChecklist(
@@ -1048,13 +1127,13 @@ fun TaskCardItem(
                         Icon(
                             imageVector = Icons.Outlined.DateRange,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = colors.textSecondary,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = state.dueDate,
                             fontSize = 11.sp,
-                            color = Color.Gray,
+                            color = colors.textSecondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1068,13 +1147,13 @@ fun TaskCardItem(
                             Icon(
                                 imageVector = Icons.Outlined.Label,
                                 contentDescription = null,
-                                tint = Color.Gray,
+                                tint = colors.textSecondary,
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
                                 text = state.category,
                                 fontSize = 11.sp,
-                                color = Color.Gray,
+                                color = colors.textSecondary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1092,7 +1171,7 @@ fun TaskCardItem(
                             .weight(1f)
                             .height(5.dp)
                             .clip(RoundedCornerShape(2.5.dp))
-                            .background(Color(0xFFE0E0E0))
+                            .background(colors.cardBorder)
                     ) {
                         Box(
                             modifier = Modifier
@@ -1106,7 +1185,7 @@ fun TaskCardItem(
                         text = "${(state.progress * 100).toInt()}%",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray
+                        color = colors.textSecondary
                     )
                 }
             }

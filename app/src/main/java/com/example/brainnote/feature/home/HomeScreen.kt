@@ -99,20 +99,25 @@ fun HomeScreen(
         },
         containerColor = if (selectedTab == 0 || selectedTab == 2) Color.Transparent else Color(0xFFF5F4F8)
     ) { innerPadding ->
+        // We only apply innerPadding to tabs that need it, 
+        // to allow NoteDashboardScreen's starry sky to draw behind the transparent bottom bar.
         Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
+            val bottomPadding = innerPadding.calculateBottomPadding()
             when (selectedTab) {
                 0 -> Box(modifier = Modifier.fillMaxSize()) {
                     NoteDashboardScreen(onTaskCardClick = onTaskCardClick)
                 }
-                1 -> FocusScreen(
-                    activeTaskIndex = activeFocusTaskIndex,
-                    onCloseClick = { 
-                        selectedTab = 0 
-                        activeFocusTaskIndex = null
-                    }
-                )
+                1 -> Box(modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding)) {
+                    FocusScreen(
+                        activeTaskIndex = activeFocusTaskIndex,
+                        onCloseClick = { 
+                            selectedTab = 0 
+                            activeFocusTaskIndex = null
+                        }
+                    )
+                }
                 2 -> Box(modifier = Modifier.fillMaxSize()) {
                     TasksScreen(
                         onTaskCardClick = onTaskCardClick,
@@ -122,7 +127,7 @@ fun HomeScreen(
                         }
                     )
                 }
-                3 -> Box(modifier = Modifier.fillMaxSize()) {
+                3 -> Box(modifier = Modifier.fillMaxSize().padding(bottom = bottomPadding)) {
                     SettingsScreen()
                 }
             }

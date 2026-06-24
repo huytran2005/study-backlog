@@ -85,11 +85,11 @@ fun getBentoColors(): BentoTheme {
         background = Color(0xFF0F0B18),       // Deep twilight slate/purple
         cardBg = Color(0xFF9E78B2).copy(alpha = 0.24f), // Translucent premium glassmorphic lilac
         cardBorder = Color(0xFFEADBFC).copy(alpha = 0.20f), // Soft glowing border
-        textPrimary = Color(0xFFFFFFFF),
-        textSecondary = Color(0xFFE5D5F2),
-        accentPurple = Color(0xFFD6A5FA),      // Electric Lavender
-        accentGreen = Color(0xFF8CEFA2),
-        accentGold = Color(0xFFFCD34D),
+        textPrimary = Color(0xFFFFF9F0),      // Warm Ivory
+        textSecondary = Color(0xFFFFCCB3),    // Warm Peach
+        accentPurple = Color(0xFFFF7043),     // Vibrant Coral
+        accentGreen = Color(0xFFFFB74D),      // Warm Orange-Yellow
+        accentGold = Color(0xFFFFD54F),       // Warm Gold
         gradientStart = Color(0xFF8A60A8).copy(alpha = 0.85f), // Soft brand gradient
         gradientEnd = Color(0xFFC795C6).copy(alpha = 0.85f),
         badgeBg = Color(0xFF4C3070).copy(alpha = 0.5f)

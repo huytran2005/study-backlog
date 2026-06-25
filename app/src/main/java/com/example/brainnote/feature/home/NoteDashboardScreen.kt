@@ -11,7 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.example.brainnote.R
@@ -245,6 +252,45 @@ object NoteRepository {
 }
 
 @Composable
+fun CircularProgressRing(
+    progress: Float,
+    color: Color,
+    trackColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 6.dp.toPx()
+            // Track
+            drawArc(
+                color = trackColor,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = strokeWidth,
+                    cap = StrokeCap.Round
+                )
+            )
+            // Progress arc
+            drawArc(
+                color = color,
+                startAngle = -90f,
+                sweepAngle = progress * 360f,
+                useCenter = false,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = strokeWidth,
+                    cap = StrokeCap.Round
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun NoteDashboardScreen(
     onTaskCardClick: (Int) -> Unit = {}
 ) {
@@ -252,48 +298,9 @@ fun NoteDashboardScreen(
     val scrollState = rememberScrollState()
     val colors = getBentoColors()
 
-    // Slide-in and fade-in states for the top bar
-    var isAnimated by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        isAnimated = true
-    }
-
-    val topBarAlpha by animateFloatAsState(
-        targetValue = if (isAnimated) 1f else 0f,
-        animationSpec = tween(durationMillis = 600, easing = EaseOutCubic)
-    )
-    val topBarOffsetY by animateDpAsState(
-        targetValue = if (isAnimated) 0.dp else (-16).dp,
-        animationSpec = tween(durationMillis = 600, easing = EaseOutCubic)
-    )
-
-    // Infinite transitions for shifting background liquid mesh colors
-    val infiniteTransition = rememberInfiniteTransition(label = "background")
-
-    // Infinite animation variables for the premium avatar and indicators
-    val avatarRotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(12000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "avatar_rotation"
-    )
-
-    val glowIntensity by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glow_intensity"
-    )
-
-    // Twinkling stars position memory and animation
+    // Gentle star canvas background (cleaner and less distracting)
     val stars = remember {
-        List(70) {
+        List(25) {
             Offset(
                 x = (0..1000).random() / 1000f,
                 y = (0..1000).random() / 1000f
@@ -301,410 +308,567 @@ fun NoteDashboardScreen(
         }
     }
 
-    val twinkle by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "twinkle"
-    )
-
-    // Gentle cloud floating animation (bobbing vertically)
-    val cloudTranslationY by infiniteTransition.animateFloat(
-        initialValue = -12f,
-        targetValue = 12f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(5000, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "cloud_translation"
-    )
-    
-    // Dynamic color shifting for Blob 1 (Purple -> Indigo -> Fuchsia -> Blue -> Purple)
-    val dynamicColor1 by infiniteTransition.animateColor(
-        initialValue = colors.accentPurple.copy(alpha = 0.22f),
-        targetValue = colors.accentPurple.copy(alpha = 0.22f),
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 16000
-                colors.accentPurple.copy(alpha = 0.22f) at 0 with LinearEasing
-                Color(0xFF6366F1).copy(alpha = 0.20f) at 4000 with LinearEasing
-                Color(0xFFD946EF).copy(alpha = 0.22f) at 8000 with LinearEasing
-                Color(0xFF3B82F6).copy(alpha = 0.20f) at 12000 with LinearEasing
-                colors.accentPurple.copy(alpha = 0.22f) at 16000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "dynamic_color1"
-    )
-
-    // Dynamic color shifting for Blob 2 (Gold -> Rose -> Orange -> Pink -> Gold)
-    val dynamicColor2 by infiniteTransition.animateColor(
-        initialValue = colors.accentGold.copy(alpha = 0.18f),
-        targetValue = colors.accentGold.copy(alpha = 0.18f),
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 16000
-                colors.accentGold.copy(alpha = 0.18f) at 0 with LinearEasing
-                Color(0xFFF43F5E).copy(alpha = 0.18f) at 4000 with LinearEasing
-                Color(0xFFF97316).copy(alpha = 0.18f) at 8000 with LinearEasing
-                Color(0xFFEC4899).copy(alpha = 0.18f) at 12000 with LinearEasing
-                colors.accentGold.copy(alpha = 0.18f) at 16000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "dynamic_color2"
-    )
-
-    // Dynamic color shifting for Blob 3 (Green -> Cyan -> Emerald -> Teal -> Green)
-    val dynamicColor3 by infiniteTransition.animateColor(
-        initialValue = colors.accentGreen.copy(alpha = 0.16f),
-        targetValue = colors.accentGreen.copy(alpha = 0.16f),
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 16000
-                colors.accentGreen.copy(alpha = 0.16f) at 0 with LinearEasing
-                Color(0xFF06B6D4).copy(alpha = 0.16f) at 4000 with LinearEasing
-                Color(0xFF10B981).copy(alpha = 0.16f) at 8000 with LinearEasing
-                Color(0xFF14B8A6).copy(alpha = 0.16f) at 12000 with LinearEasing
-                colors.accentGreen.copy(alpha = 0.16f) at 16000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "dynamic_color3"
-    )
-
-    // Dynamic color shifting for Blob 4 (Purple -> Violet -> Indigo -> Pink -> Purple)
-    val dynamicColor4 by infiniteTransition.animateColor(
-        initialValue = colors.accentPurple.copy(alpha = 0.20f),
-        targetValue = colors.accentPurple.copy(alpha = 0.20f),
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 16000
-                colors.accentPurple.copy(alpha = 0.20f) at 0 with LinearEasing
-                Color(0xFF8B5CF6).copy(alpha = 0.18f) at 4000 with LinearEasing
-                Color(0xFF6366F1).copy(alpha = 0.20f) at 8000 with LinearEasing
-                Color(0xFFEC4899).copy(alpha = 0.18f) at 12000 with LinearEasing
-                colors.accentPurple.copy(alpha = 0.20f) at 16000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "dynamic_color4"
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // Galaxy Gradient Background with Floating Clouds & Mountain Overlay
         AnimatedGalaxyBackground()
 
-        // 2. Starry Night Sky Canvas (Twinkling star dots + Shifting Aurora gradients overlay)
+        // Soft twinkling stars canvas
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
-
-            // A. Draw Twinkling Stars
             stars.forEachIndexed { index, offset ->
-                val alphaFactor = if (index % 2 == 0) twinkle else (1.3f - twinkle)
                 drawCircle(
-                    color = Color.White.copy(alpha = 0.55f * alphaFactor.coerceIn(0.1f, 1f)),
-                    radius = if (index % 7 == 0) 1.5.dp.toPx() else 0.8.dp.toPx(),
+                    color = Color.White.copy(alpha = 0.25f),
+                    radius = 0.8.dp.toPx(),
                     center = Offset(offset.x * w, offset.y * h)
                 )
             }
-
-            // B. Shifting Aurora Blobs (Overlayed softly on top of stars)
-            // 1. Shifting Purple-to-Blue Blob (Top Left)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(dynamicColor1.copy(alpha = 0.12f), Color.Transparent),
-                    radius = w * 0.85f,
-                    center = Offset(w * 0.1f, h * 0.05f)
-                ),
-                radius = w * 0.85f,
-                center = Offset(w * 0.1f, h * 0.05f)
-            )
-
-            // 2. Shifting Amber-to-Rose Blob (Top Right)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(dynamicColor2.copy(alpha = 0.10f), Color.Transparent),
-                    radius = w * 0.8f,
-                    center = Offset(w * 0.9f, h * 0.25f)
-                ),
-                radius = w * 0.8f,
-                center = Offset(w * 0.9f, h * 0.25f)
-            )
-
-            // 3. Shifting Green-to-Teal Blob (Middle Left)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(dynamicColor3.copy(alpha = 0.08f), Color.Transparent),
-                    radius = w * 0.75f,
-                    center = Offset(w * 0.2f, h * 0.5f)
-                ),
-                radius = w * 0.75f,
-                center = Offset(w * 0.2f, h * 0.5f)
-            )
-
-            // 4. Shifting Indigo-to-Violet Blob (Bottom Right)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(dynamicColor4.copy(alpha = 0.10f), Color.Transparent),
-                    radius = w * 0.8f,
-                    center = Offset(w * 0.85f, h * 0.8f)
-                ),
-                radius = w * 0.8f,
-                center = Offset(w * 0.85f, h * 0.8f)
-            )
         }
-
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            // Animated Premium Floating Top Bar Capsule (matching the CustomBottomNavigationBar)
-            Box(
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 1. Header Layout matching the wireframe (Separated)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = topBarOffsetY)
-                    .alpha(topBarAlpha)
-                    .padding(vertical = 12.dp)
-                    .shadow(6.dp, RoundedCornerShape(24.dp))
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "XIN CHÀO",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF9E99A6)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Dũng",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                // Avatar Circle on the right with a blue/indigo gradient and letter "D"
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(Color(0xFF5694F0), Color(0xFF2F49D1))
+                            ),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "D",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2. Hôm nay card with Play button (Separated)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .background(colors.cardBg, RoundedCornerShape(24.dp))
                     .border(1.dp, colors.cardBorder, RoundedCornerShape(24.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(24.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left profile details (Avatar + Greeting)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Vector Drawn High-End Abstract Portrait Avatar with Spinning Orbital Aura
-                        Box(
-                            modifier = Modifier.size(54.dp),
-                            contentAlignment = Alignment.Center
+                        Text(text = "☀️", fontSize = 14.sp)
+                        Text(
+                            text = "Hôm nay",
+                            fontSize = 13.sp,
+                            color = colors.textSecondary
+                        )
+                    }
+                    // Yellow/orange badge: 🔥 7 ngày
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFE5A93C).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFFE5A93C).copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // 1. Spinning dynamic gradient orbital arc
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                val ringColor = colors.accentPurple
-                                drawArc(
-                                    color = ringColor.copy(alpha = glowIntensity),
-                                    startAngle = avatarRotation,
-                                    sweepAngle = 90f,
-                                    useCenter = false,
-                                    style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                        width = 2.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
-                                )
-                                drawArc(
-                                    color = colors.accentGold.copy(alpha = glowIntensity * 0.7f),
-                                    startAngle = avatarRotation + 180f,
-                                    sweepAngle = 90f,
-                                    useCenter = false,
-                                    style = androidx.compose.ui.graphics.drawscope.Stroke(
-                                        width = 2.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
-                                )
-                            }
+                            Text(text = "🔥", fontSize = 11.sp)
+                            Text(
+                                text = "7 ngày",
+                                fontSize = 11.sp,
+                                color = Color(0xFFFFB74D),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
 
-                            // 2. Main Profile Avatar with Custom Vector Portrait
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .shadow(4.dp, CircleShape)
-                                    .background(
-                                        Brush.linearGradient(
-                                            colors = listOf(colors.gradientStart, colors.gradientEnd)
-                                        ),
-                                        CircleShape
-                                    )
-                                    .border(1.5.dp, colors.cardBorder, CircleShape)
-                                    .clip(CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    val w = size.width
-                                    val h = size.height
+                Spacer(modifier = Modifier.height(12.dp))
 
-                                    // Draw neck shadow
-                                    drawCircle(
-                                        color = Color.Black.copy(alpha = 0.15f),
-                                        radius = w * 0.35f,
-                                        center = Offset(w * 0.5f, h * 0.88f)
-                                    )
-                                    
-                                    // Face structure
-                                    drawCircle(
-                                        color = Color.White.copy(alpha = 0.92f),
-                                        radius = w * 0.28f,
-                                        center = Offset(w * 0.5f, h * 0.46f)
-                                    )
+                Text(
+                    text = "2h 35m",
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Thời gian học hôm nay",
+                    fontSize = 13.sp,
+                    color = colors.textSecondary
+                )
 
-                                    // Abstract geometric hair crown
-                                    drawArc(
-                                        color = Color(0xFF2C194D),
-                                        startAngle = 180f,
-                                        sweepAngle = 180f,
-                                        useCenter = true,
-                                        size = androidx.compose.ui.geometry.Size(w * 0.62f, h * 0.52f),
-                                        topLeft = Offset(w * 0.19f, h * 0.18f)
-                                    )
+                Spacer(modifier = Modifier.height(20.dp))
 
-                                    // Premium minimalist abstract sunglasses/spectacles
-                                    drawRect(
-                                        color = Color(0xFF2C194D),
-                                        topLeft = Offset(w * 0.3f, h * 0.43f),
-                                        size = androidx.compose.ui.geometry.Size(w * 0.4f, h * 0.11f)
+                // Outlined Button with Play icon: ▷ Bắt đầu học
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .border(1.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+                        .clip(RoundedCornerShape(24.dp))
+                        .clickable { onTaskCardClick(-1) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "▷",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Bắt đầu học",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 3. Row with two side-by-side cards: 7 ngày and Phiên gần nhất
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Left Card: Tổng 7 ngày
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color(0xFF131538), RoundedCornerShape(24.dp))
+                        .border(1.dp, Color(0xFF212459), RoundedCornerShape(24.dp))
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressRing(
+                        progress = 0.60f,
+                        color = Color(0xFF8B5CF6),
+                        trackColor = Color(0xFF8B5CF6).copy(alpha = 0.15f),
+                        modifier = Modifier.size(68.dp)
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Tổng 7 ngày",
+                        fontSize = 12.sp,
+                        color = colors.textSecondary,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "2h 12m",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                // Right Card: Phiên gần nhất
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color(0xFF081C1B), RoundedCornerShape(24.dp))
+                        .border(1.dp, Color(0xFF103632), RoundedCornerShape(24.dp))
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressRing(
+                        progress = 0.75f,
+                        color = Color(0xFF05B187),
+                        trackColor = Color(0xFF05B187).copy(alpha = 0.15f),
+                        modifier = Modifier.size(68.dp)
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Phiên gần nhất",
+                        fontSize = 12.sp,
+                        color = colors.textSecondary,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "45 phút",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 4. Progress Card with days of the week indicators
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.cardBg, RoundedCornerShape(24.dp))
+                    .border(1.dp, colors.cardBorder, RoundedCornerShape(24.dp))
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Assignment,
+                            contentDescription = null,
+                            tint = Color(0xFF5694F0),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = "Tiến độ tuần",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary
+                        )
+                    }
+                    Text(
+                        text = "70%",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5694F0)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Progress Bar with Purple -> Blue gradient
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                        .background(Color(0xFF2C2638), RoundedCornerShape(5.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .fillMaxHeight()
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF8A60A8), Color(0xFF3B82F6))
+                                ),
+                                RoundedCornerShape(5.dp)
+                              )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Days of the week row: T2, T3, T4, T5, T6, T7, CN
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+                    days.forEachIndexed { index, day ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = day,
+                                fontSize = 11.sp,
+                                color = colors.textSecondary
+                            )
+
+                            val isCompleted = index < 5 // T2 to T6 are completed (index 0 to 4)
+                            if (isCompleted) {
+                                // Completed circle with checkmark
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .background(Color(0xFF2F49D1), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            } else {
+                                // Incomplete hollow circle with dash
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .background(Color(0xFF1E1C24), CircleShape)
+                                        .border(1.dp, Color(0xFF2C2638), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "—",
+                                        color = colors.textSecondary,
+                                        fontSize = 10.sp
                                     )
                                 }
                             }
                         }
-
-                        Column {
-                            Text(
-                                text = "XIN CHÀO!",
-                                fontSize = 9.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colors.accentPurple,
-                                letterSpacing = 1.4.sp
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Người dùng",
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = colors.textPrimary
-                            )
-                        }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Apple Bento Grid: Puzzle Row 1 (Today's time tall cell & stacked streak + max session stats)
+            // 4b. Hoạt động tuần Card
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.cardBg, RoundedCornerShape(24.dp))
+                    .border(1.dp, colors.cardBorder, RoundedCornerShape(24.dp))
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Canvas(modifier = Modifier.size(18.dp)) {
+                            val w = size.width
+                            val h = size.height
+                            val path = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(0f, h * 0.6f)
+                                lineTo(w * 0.22f, h * 0.6f)
+                                lineTo(w * 0.38f, h * 0.2f)
+                                lineTo(w * 0.54f, h * 0.8f)
+                                lineTo(w * 0.7f, h * 0.4f)
+                                lineTo(w * 0.82f, h * 0.6f)
+                                lineTo(w, h * 0.6f)
+                            }
+                            drawPath(
+                                path = path,
+                                color = Color(0xFFB388FF),
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 2.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
+                            )
+                        }
+                        Text(
+                            text = "Hoạt động tuần",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Chart row containing only the bars
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    val heights = listOf(0.45f, 0.55f, 0.38f, 0.75f, 0.85f, 0f, 0f)
+                    heights.forEach { barHeightFraction ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            if (barHeightFraction > 0f) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .fillMaxHeight(barHeightFraction)
+                                        .background(
+                                            Brush.verticalGradient(
+                                                colors = listOf(Color(0xFF8A60A8), Color(0xFF3B82F6))
+                                            ),
+                                            RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+                                        )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Labels row containing day texts
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+                    days.forEach { day ->
+                        Text(
+                            text = day,
+                            fontSize = 11.sp,
+                            color = colors.textSecondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 5. Recent Notes Section
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(top = 28.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tall Left Cell (Purple gradient)
-                HeroBentoCell(
-                    todayFocusTime = "2h 35m",
-                    modifier = Modifier
-                        .weight(1.2f)
-                        .fillMaxHeight()
-                )
-
-                // Stacked Right Column
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StreakBentoCell(
-                        streakDays = 7,
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatsBentoCell(
-                        value = "2h 12m",
-                        label = "Lần lâu nhất",
-                        modifier = Modifier.weight(1f)
+                    Text(text = "📒", fontSize = 16.sp)
+                    Text(
+                        text = "Ghi chú gần đây",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.textPrimary
                     )
                 }
+                Text(
+                    text = "Xem tất cả",
+                    fontSize = 12.sp,
+                    color = Color(0xFFB388FF),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { }
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Apple Bento Grid: Puzzle Row 2 (Integrated Action capsule cell)
-            ActionBentoCell(
-                text = "Bắt đầu phiên học mới",
-                onClick = { onTaskCardClick(-1) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Apple Bento Grid: Puzzle Row 3 (Weekly target wide cell)
-            WeeklyProgressBentoCell(
-                currentHours = 14f,
-                targetHours = 20f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-            )
-
+            // Render Notes cards with side bar decoration exactly matching screenshot
             if (notesList.isNotEmpty()) {
-                Text(
-                    text = "GHI CHÚ CỦA BẠN",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.textSecondary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 12.dp)
-                )
+                notesList.take(2).forEachIndexed { noteIndex, note ->
+                    val accentColor = if (noteIndex == 0) Color(0xFFB388FF) else Color(0xFF00E676)
 
-                notesList.forEachIndexed { index, note ->
-                    when (note) {
-                        is NoteCardData.Idea -> {
-                            NoteBentoCell(
-                                title = note.title,
-                                description = note.description,
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .background(colors.cardBg, RoundedCornerShape(12.dp))
+                            .border(1.dp, colors.cardBorder, RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Left accent bar
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .padding(bottom = 12.dp)
+                                    .fillMaxHeight()
+                                    .width(4.dp)
+                                    .background(accentColor)
                             )
-                        }
-                        is NoteCardData.ImageIdea -> {
-                            NoteBentoCell(
-                                title = note.title,
-                                description = note.description,
+
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .padding(bottom = 12.dp)
-                            )
-                        }
-                        is NoteCardData.ShoppingList -> {
-                            ShoppingListCard(
-                                title = note.title,
-                                items = note.items,
-                                footerText = note.footerText,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 12.dp)
-                            )
-                        }
-                        is NoteCardData.NestedTask -> {
-                            // Do nothing: tasks are not shown in this section
+                                    .weight(1f)
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            ) {
+                                val title = when (note) {
+                                    is NoteCardData.Idea -> note.title
+                                    is NoteCardData.ImageIdea -> note.title
+                                    is NoteCardData.ShoppingList -> note.title
+                                    is NoteCardData.NestedTask -> note.title
+                                }
+                                val desc = when (note) {
+                                    is NoteCardData.Idea -> note.description
+                                    is NoteCardData.ImageIdea -> note.description
+                                    is NoteCardData.ShoppingList -> note.items.joinToString(", ")
+                                    is NoteCardData.NestedTask -> note.description
+                                }
+
+                                Text(
+                                    text = title,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = desc,
+                                    fontSize = 12.sp,
+                                    color = colors.textSecondary,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(160.dp))
+            Spacer(modifier = Modifier.height(140.dp)) // Spacing for bottom bar
         }
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Outline
@@ -140,7 +141,11 @@ fun HomeScreen(
 /**
  * Custom Shape that draws a top-rounded bar with a curved notch cutout in the center.
  */
-class NotchShape(private val circleRadiusDp: Float, private val notchDepthDp: Float) : Shape {
+class NotchShape(
+    private val circleRadiusDp: Float,
+    private val notchDepthDp: Float,
+    private val cornerRadiusDp: Float = 28f
+) : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
@@ -152,12 +157,13 @@ class NotchShape(private val circleRadiusDp: Float, private val notchDepthDp: Fl
             val cx = w / 2
             val r = circleRadiusDp * density.density
             val d = notchDepthDp * density.density
-            val corner = 28.dp.value * density.density
+            val corner = cornerRadiusDp * density.density
 
+            // Start at top-left corner (rounded)
             moveTo(0f, corner)
             quadraticTo(0f, 0f, corner, 0f)
 
-            // Draw line to the start of the notch
+            // Draw line to the start of the notch (using a relative offset based on the notch radius)
             val notchStart = cx - r - 10.dp.value * density.density
             lineTo(notchStart, 0f)
 
@@ -170,9 +176,15 @@ class NotchShape(private val circleRadiusDp: Float, private val notchDepthDp: Fl
             lineTo(w - corner, 0f)
             quadraticTo(w, 0f, w, corner)
 
-            // Finish the bottom rectangle
-            lineTo(w, h)
-            lineTo(0f, h)
+            // Line to the bottom-right corner (rounded)
+            lineTo(w, h - corner)
+            quadraticTo(w, h, w - corner, h)
+
+            // Line to the bottom-left corner (rounded)
+            lineTo(corner, h)
+            quadraticTo(0f, h, 0f, h - corner)
+
+            // Close path back to the start point (0f, corner)
             close()
         }
         return Outline.Generic(path)
@@ -192,76 +204,109 @@ fun CustomBottomNavigationBar(
     onAddNoteClick: () -> Unit
 ) {
     val colors = getBentoColors()
-    val gradientBrush =
+    // Fully opaque gradient for the FAB button to ensure the background/border line doesn't show through
+    val opaqueGradientBrush =
         Brush.linearGradient(
-        colors = listOf(colors.gradientStart, colors.gradientEnd),
+        colors = listOf(colors.gradientStart.copy(alpha = 1.0f), colors.gradientEnd.copy(alpha = 1.0f)),
         start = Offset(0f, 0f),
         end = Offset(1000f, 1000f)
     )
 
-    Surface(
-        color = Color(0xFF1E1533).copy(alpha = 0.95f), // Mostly opaque dark purple to prevent text overlap
-        shadowElevation = 6.dp,
-        shape = RoundedCornerShape(24.dp),
+    // Dynamic Sizing System: Define single sources of truth for FAB size, gap, and corners
+    val fabSize = 54.dp
+    val gapSize = 14.dp
+    val barCornerRadius = 24.dp
+
+    val fabRadius = fabSize / 2
+    val notchRadius = fabRadius + gapSize
+    val notchDepth = fabRadius + gapSize
+    val fabOffset = -fabRadius
+
+    // Create the notch shape dynamically from relative dimensions
+    val notchShape = remember(notchRadius, notchDepth, barCornerRadius) {
+        NotchShape(
+            circleRadiusDp = notchRadius.value,
+            notchDepthDp = notchDepth.value,
+            cornerRadiusDp = barCornerRadius.value
+        )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 12.dp)
-            .navigationBarsPadding()
-            .border(1.dp, colors.cardBorder, RoundedCornerShape(24.dp))
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.TopCenter
     ) {
-        Row(
+        Surface(
+            color = Color(0xFF1E1533).copy(alpha = 0.95f), // Mostly opaque dark purple to prevent text overlap
+            shadowElevation = 6.dp,
+            shape = notchShape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(68.dp)
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+                .border(1.dp, colors.cardBorder, notchShape)
         ) {
-            BottomTabItem(
-                icon = Icons.Outlined.Home,
-                label = "Home",
-                isSelected = selectedTab == 0,
-                onClick = { onTabSelected(0) },
-                modifier = Modifier.weight(1f)
-            )
-            BottomTabItem(
-                icon = Icons.Outlined.Timer,
-                label = "Focus",
-                isSelected = selectedTab == 1,
-                onClick = { onTabSelected(1) },
-                modifier = Modifier.weight(1f)
-            )
-
-            // Center integrated Add FAB Button styled with bento gradient
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(46.dp)
-                    .background(gradientBrush, CircleShape)
-                    .clip(CircleShape)
-                    .clickable(onClick = onAddNoteClick),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                BottomTabItem(
+                    icon = Icons.Outlined.Home,
+                    label = "Home",
+                    isSelected = selectedTab == 0,
+                    onClick = { onTabSelected(0) },
+                    modifier = Modifier.weight(1f)
+                )
+                BottomTabItem(
+                    icon = Icons.Outlined.Timer,
+                    label = "Focus",
+                    isSelected = selectedTab == 1,
+                    onClick = { onTabSelected(1) },
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Placeholder space for the middle button, so items are spaced correctly around the notch
+                Spacer(modifier = Modifier.weight(1f))
+
+                BottomTabItem(
+                    icon = Icons.Outlined.CheckCircle,
+                    label = "Tasks",
+                    isSelected = selectedTab == 2,
+                    onClick = { onTabSelected(2) },
+                    modifier = Modifier.weight(1f)
+                )
+                BottomTabItem(
+                    icon = Icons.Outlined.Settings,
+                    label = "Settings",
+                    isSelected = selectedTab == 3,
+                    onClick = { onTabSelected(3) },
+                    modifier = Modifier.weight(1f)
                 )
             }
+        }
 
-            BottomTabItem(
-                icon = Icons.Outlined.CheckCircle,
-                label = "Tasks",
-                isSelected = selectedTab == 2,
-                onClick = { onTabSelected(2) },
-                modifier = Modifier.weight(1f)
-            )
-            BottomTabItem(
-                icon = Icons.Outlined.Settings,
-                label = "Settings",
-                isSelected = selectedTab == 3,
-                onClick = { onTabSelected(3) },
-                modifier = Modifier.weight(1f)
+        // Center integrated Add FAB Button styled with fully opaque bento gradient, hanging over the notch with a clear gap
+        Box(
+            modifier = Modifier
+                .offset(y = fabOffset) // Offset dynamically by half the FAB's height to center it exactly
+                .zIndex(1f) // Ensure the FAB is drawn strictly on top of the bottom bar and its border
+                .size(fabSize)
+                .shadow(8.dp, CircleShape)
+                .background(opaqueGradientBrush, CircleShape)
+                .clip(CircleShape)
+                .clickable(onClick = onAddNoteClick),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
     }
